@@ -12,7 +12,10 @@ export const CalendarGrid = ({ year, month, dates, stampsSet }) => {
     if (!date) {
       cells.push(<div class="calendar-cell disabled"></div>)
     } else {
-      const isoDate = date.toISOString().split('T')[0]
+      const y = date.getFullYear()
+      const m = (date.getMonth() + 1).toString().padStart(2, '0')
+      const d = date.getDate().toString().padStart(2, '0')
+      const isoDate = `${y}-${m}-${d}`
       const dayNumber = date.getDate()
       const isStamped = stampsObj[isoDate]
 
@@ -40,7 +43,7 @@ export const CalendarGrid = ({ year, month, dates, stampsSet }) => {
 
   return (
     <div id="calendar-grid" class="calendar-grid">
-      {cells}
+      {...cells}
     </div>
   )
 }

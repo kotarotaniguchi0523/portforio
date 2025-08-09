@@ -72,10 +72,7 @@ appRoutes.post('/stamp', async (c) => {
 
   const body = await c.req.parseBody()
   const date = body.date
-  if (date && typeof date === 'string') {
-    if (!isValidISODateString(date)) {
-      return c.text('Invalid date format. Please use YYYY-MM-DD.', 400)
-    }
+  if (date && typeof date === 'string' && isValidISODateString(date)) {
     addStampToSession(sessionId, date)
   }
 
@@ -85,9 +82,6 @@ appRoutes.post('/stamp', async (c) => {
   const month = now.getMonth()
   const dates = getMonthDates(year, month)
   const updatedUser = getSession(sessionId) // Get the most recent session data
-  if (!updatedUser) {
-    return c.text('Session expired or invalid', 401)
-  }
 
   const component = <CalendarGrid year={year} month={month} dates={dates} stampsSet={updatedUser.stamps} />
   return c.html(component)
