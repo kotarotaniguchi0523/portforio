@@ -1,0 +1,36 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node ./node_modules/tsx/dist/cli.mjs watch src/main.js",
+    "start": "node ./node_modules/tsx/dist/cli.mjs src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kotarotaniguchi0523/portforio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kotarotaniguchi0523/portforio/issues"
+  },
+    "url": "git+https://github.com/kotarotaniguchi0523/portfolio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kotarotaniguchi0523/portfolio/issues"
+  },
+  "homepage": "https://github.com/kotarotaniguchi0523/portfolio#readme",
+  "dependencies": {
+    "@hono/node-server": "^1.18.1",
+    "hono": "^4.9.0",
+    "tsx": "^4.20.3"
+  },
+  "devDependencies": {}
+}
