@@ -1,12 +1,13 @@
 import { getCookie } from 'hono/cookie'
-import { getSession } from '../../domain/session.js'
+import { getSessionData } from '../../domain/session.js'
 
 export const sessionMiddleware = async (c, next) => {
   const sessionId = getCookie(c, 'sessionId')
   if (sessionId) {
-    const userSession = getSession(sessionId)
-    if (userSession) {
-      c.set('user', userSession)
+    const sessionData = getSessionData(sessionId)
+    if (sessionData) {
+      c.set('user', sessionData.user)
+      c.set('stamps', sessionData.stamps)
       c.set('sessionId', sessionId)
     }
   }

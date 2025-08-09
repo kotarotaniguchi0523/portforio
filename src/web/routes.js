@@ -1,10 +1,20 @@
 import { Hono } from 'hono'
-import { setCookie } from 'hono/cookie'
+import { setCookie, getCookie } from 'hono/cookie'
 import { jsx } from 'hono/jsx'
 import { LoginPage } from './components/LoginPage.jsx'
 import { CalendarPage, CalendarGrid } from './components/CalendarPage.jsx'
-import { createSession, addStampToSession, getSession } from '../domain/session.js'
+import { LectureSelectionPage } from './components/LectureSelectionPage.jsx'
+// Updated imports
+import { addStamp, getUserIdFromSession, findOrCreateUser, createSession } from '../domain/session.js'
 import { getMonthDates } from '../domain/calendar.js'
+import { Client } from '@line/bot-sdk'
+import crypto from 'crypto'
+
+// LINE SDK Client
+const lineClient = new Client({
+  channelAccessToken: '', // Not needed for login
+  channelSecret: process.env.LINE_CHANNEL_SECRET,
+})
 
 /**
  * Validates if a string is a valid ISO 8601 date string (YYYY-MM-DD).
@@ -30,62 +40,109 @@ appRoutes.get('/', (c) => {
   return c.render(<LoginPage />, { title: 'ログイン' })
 })
 
-// Route: POST /login - Handle user login
-appRoutes.post('/login', async (c) => {
-  const body = await c.req.parseBody()
-  const username = (body.username || '').trim()
+// POST /login route is removed. It will be replaced with LINE Login flow.
 
-  if (!username) {
-    return c.text('ユーザー名を入力してください。', 400)
+// Route: GET /select-lecture - Show the lecture selection page
+appRoutes.get('/select-lecture', (c) => {
+  const user = c.get('user')
+  if (!user) {
+    return c.redirect('/')
   }
-
-  const sessionId = createSession(username)
-  setCookie(c, 'sessionId', sessionId, { path: '/', httpOnly: true, secure: c.req.url.startsWith('https://'), sameSite: 'Lax' })
-  return c.redirect('/calendar')
+  return c.render(<LectureSelectionPage username={user.username} />, {
+    title: '講義を選択',
+  })
 })
 
 // Route: GET /calendar - Show the calendar page
 appRoutes.get('/calendar', (c) => {
   const user = c.get('user')
+  const stamps = c.get('stamps') // Get stamps from context
   if (!user) {
     return c.redirect('/')
   }
-  return c.render(<CalendarPage username={user.username} stampsSet={user.stamps} />, {
+  // Pass the array of stamp objects to the component.
+  // The component will need to be updated to handle this new data structure.
+  return c.render(<CalendarPage username={user.username} stamps={stamps} />, {
     title: 'スタンプカレンダー',
   })
 })
 
-// Route: POST /stamp - Handle a stamping action
+// Route: POST /stamp - Handle lecture selection and create a stamp
 appRoutes.post('/stamp', async (c) => {
   const user = c.get('user')
   if (!user) {
-    // NOTE: In a real htmx scenario, you might return a redirect header
-    // or a specific component indicating an error or session timeout.
-    // For now, we'll rely on the user being logged in.
     return c.text('Unauthorized', 401)
   }
 
   const sessionId = c.get('sessionId')
-  if (!sessionId) {
+  const userId = getUserIdFromSession(sessionId)
+  if (!userId) {
     return c.text('Invalid session', 401)
   }
 
   const body = await c.req.parseBody()
-  const { date, year, month } = body
+  const lectureType = body.lectureType
 
-  if (date && typeof date === 'string' && isValidISODateString(date)) {
-    addStampToSession(sessionId, date)
+  if (!lectureType || typeof lectureType !== 'string') {
+    return c.text('Invalid lecture type.', 400)
   }
 
-  // Use the year and month from the request, falling back to the current date
-  // to ensure the correct month is re-rendered.
-  const now = new Date()
-  const renderYear = year ? parseInt(year, 10) : now.getFullYear()
-  const renderMonth = month ? parseInt(month, 10) : now.getMonth()
+  // Stamp for today's date
+  const today = new Date().toISOString().slice(0, 10)
+  addStamp(userId, today, lectureType)
 
-  const dates = getMonthDates(renderYear, renderMonth)
-  const updatedUser = getSession(sessionId) // Get the most recent session data
+  // After stamping, redirect the user to the calendar page
+  c.header('HX-Redirect', '/calendar')
+  return c.body(null, 200)
+})
 
-  const component = <CalendarGrid year={renderYear} month={renderMonth} dates={dates} stampsSet={updatedUser.stamps} />
-  return c.html(component)
+// === LINE Login Routes ===
+
+// 1. Redirect user to LINE for authentication
+appRoutes.get('/login/line', (c) => {
+  const state = crypto.randomBytes(16).toString('hex')
+  setCookie(c, 'line_state', state, { path: '/', httpOnly: true, secure: c.req.url.startsWith('https://'), sameSite: 'Lax' })
+
+  const scope = 'profile openid'
+  const url = 'https://access.line.me/oauth2/v2.1/authorize?' +
+    `response_type=code` +
+    `&client_id=${process.env.LINE_CHANNEL_ID}` +
+    `&redirect_uri=${process.env.LINE_CALLBACK_URL}` +
+    `&state=${state}` +
+    `&scope=${scope}`
+
+  return c.redirect(url)
+})
+
+// 2. Handle callback from LINE
+appRoutes.get('/auth/line/callback', async (c) => {
+  const { code, state } = c.req.query()
+  const storedState = getCookie(c, 'line_state')
+
+  if (!state || state !== storedState) {
+    return c.text('State mismatch. CSRF attack detected.', 400)
+  }
+
+  try {
+    // Exchange code for access token
+    const tokenResponse = await lineClient.issueAccessToken(code, process.env.LINE_CALLBACK_URL)
+    const accessToken = tokenResponse.access_token
+
+    // Get user profile
+    const profile = await lineClient.getProfile(accessToken)
+
+    // Find or create user in our database
+    const user = findOrCreateUser(profile.userId, profile.displayName)
+
+    // Create a new session for the user
+    const sessionId = createSession(user.id)
+    setCookie(c, 'sessionId', sessionId, { path: '/', httpOnly: true, secure: c.req.url.startsWith('https://'), sameSite: 'Lax' })
+
+    // Redirect to the lecture selection page
+    return c.redirect('/select-lecture')
+
+  } catch (error) {
+    console.error('LINE Login Error:', error)
+    return c.text('Failed to log in with LINE.', 500)
+  }
 })

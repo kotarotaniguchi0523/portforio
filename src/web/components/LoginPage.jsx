@@ -1,41 +1,22 @@
 import { jsx } from 'hono/jsx'
 
-export const LoginPage = () => (
-  <>
-    <style>{`
-      body {
-        font-family: sans-serif;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background: #f7f7f7;
-      }
-      .login-container {
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-      input[type=text] {
-        padding: 8px;
-        font-size: 16px;
-        width: 200px;
-      }
-      button {
-        margin-top: 10px;
-        padding: 8px 16px;
-        font-size: 16px;
-      }
-    `}</style>
-    <div class="login-container">
-      <h2>ログイン</h2>
-      <form method="POST" action="/login">
-        <label for="username">ユーザー名:</label><br />
-        <input id="username" type="text" name="username" required /><br />
-        <button type="submit">ログイン</button>
-      </form>
-    </div>
-  </>
-)
+export const LoginPage = () => {
+  return (
+    <>
+      <style>{`
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
+        .login-container { text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .line-login-btn { display: inline-block; padding: 12px 24px; background-color: #00B900; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; transition: background-color 0.3s; }
+        .line-login-btn:hover { background-color: #00a300; }
+      `}</style>
+      <div class="login-container">
+        <h1>スタンプカレンダー</h1>
+        <p>LINEアカウントでログインしてください。</p>
+        <a href="/login/line" class="line-login-btn">
+          LINEでログイン
+        </a>
+      </div>
+    </>
+  )
+}

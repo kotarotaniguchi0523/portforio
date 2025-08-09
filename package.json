@@ -10,13 +10,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kotarotaniguchi0523/portforio.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "repository": {
-    "type": "git",
     "url": "git+https://github.com/kotarotaniguchi0523/portfolio.git"
   },
   "keywords": [],
@@ -28,8 +21,10 @@
   "homepage": "https://github.com/kotarotaniguchi0523/portfolio#readme",
   "dependencies": {
     "@hono/node-server": "^1.18.1",
+    "@line/bot-sdk": "^10.1.1",
+    "better-sqlite3": "^12.2.0",
+    "dotenv": "^17.2.1",
     "hono": "^4.9.0",
     "tsx": "^4.20.3"
-  },
-  "devDependencies": {}
+  }
 }
