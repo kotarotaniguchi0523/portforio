@@ -45,7 +45,7 @@ export const CalendarPage = ({ username, stampsSet }) => {
         } else {
           const dayNumber = new Date(iso).getDate()
           const stamped = stamps[iso]
-          const dayNumberEl = jsx('div', { class: 'date-number' }, dayNumber.toString());
+          const dayNumberEl = jsx('div', { class: 'date-number' }, dayNumber.toString())
           const stampEl = stamped ? jsx('div', { class: 'stamp' }, STAMP_ICON) : null;
           cells.push(
             jsx('div', { class: 'calendar-cell', onClick: () => handleClick(iso) }, dayNumberEl, stampEl)
