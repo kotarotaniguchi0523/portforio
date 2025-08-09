@@ -57,6 +57,9 @@ appRoutes.post('/stamp', async (c) => {
   const body = await c.req.parseBody()
   const date = body.date
   if (date && typeof date === 'string') {
+    if (!isValidISODateString(date)) {
+      return c.json({ ok: false, error: 'Invalid date format' }, 400)
+    }
     addStampToSession(sessionId, date)
   }
 
