@@ -1,80 +1,108 @@
 import crypto from 'crypto'
-import { findUserById, createUser, getUserStampsWithLecture, addStamp as dbAddStamp } from '../db/index.js'
+import {
+  findUserById,
+  createUser,
+  getUserStampsWithLecture,
+  addStamp as dbAddStamp,
+  createDbSession,
+  getDbSession,
+  deleteDbSession
+} from '../db/index.js'
 
-// インメモリのセッションストア。セッションIDとユーザーIDをマッピングします。
-// 本番環境ではRedisやデータベースを使った永続的なセッションストアを使用するべきです。
-const sessions = {}
+const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
- * 指定されたユーザーIDの新しいセッションを作成します。
- * @param {string} userId - データベース内のユーザーの永続的なID。
- * @returns {string} 新しいセッションID。
+ * Creates a new persistent session for a given user ID.
+ * @param {string} userId - The user's persistent ID from the database.
+ * @returns {string} The new session ID.
  */
 export function createSession(userId) {
-  const sessionId = crypto.randomUUID()
-  sessions[sessionId] = { userId }
-  return sessionId
+  const sessionId = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+  createDbSession(sessionId, userId, expiresAt);
+  return sessionId;
 }
 
 /**
- * セッションIDに基づいてユーザーとスタンプのデータを取得します。
- * @param {string} sessionId - セッションのID。
- * @returns {{user: object, stamps: Array<{date: string, lectureType: string}>} | undefined}
+ * Retrieves user and stamp data based on a session ID.
+ * @param {string} sessionId - The ID of the session.
+ * @returns {Promise<{user: object, stamps: Array<object>}|undefined>}
  */
-export function getSessionData(sessionId) {
-  const session = sessions[sessionId]
+export async function getSessionData(sessionId) {
+  const session = getDbSession(sessionId);
   if (!session) {
-    return undefined
+    return undefined;
   }
 
-  const user = findUserById(session.userId)
+  // Check for expiration
+  if (new Date() > session.expiresAt) {
+    await deleteDbSession(sessionId);
+    return undefined;
+  }
+
+  const user = findUserById(session.userId);
   if (!user) {
-    // ユーザーがDBから削除されたが、セッションがメモリに残っている場合に発生する可能性がある
-    delete sessions[sessionId]
-    return undefined
+    await deleteDbSession(sessionId);
+    return undefined;
   }
 
-  const stamps = getUserStampsWithLecture(user.id)
+  const stamps = getUserStampsWithLecture(user.id);
 
   return {
     user: {
       id: user.id,
-      username: user.displayName, // 既存コンポーネントとの互換性のために `username` を維持
+      username: user.displayName,
     },
     stamps,
-  }
+  };
 }
 
 /**
- * LINEユーザーIDでユーザーを検索し、存在しない場合は新規作成します。
- * @param {string} id - LINEユーザーID。
- * @param {string} displayName - LINE表示名。
- * @returns {object} 発見または作成されたユーザーオブジェクト。
+ * Deletes a session from the database.
+ * @param {string} sessionId - The ID of the session to delete.
+ */
+export function deleteSession(sessionId) {
+  if (sessionId) {
+    deleteDbSession(sessionId);
+  }
+}
+
+
+/**
+ * Finds a user by their LINE user ID, or creates a new one if they don't exist.
+ * @param {string} id - LINE user ID.
+ * @param {string} displayName - LINE display name.
+ * @returns {object} The found or created user object.
  */
 export function findOrCreateUser(id, displayName) {
-  let user = findUserById(id)
+  let user = findUserById(id);
   if (!user) {
-    user = createUser(id, displayName)
-    console.log(`New user created: ${displayName} (ID: ${id})`)
+    user = createUser(id, displayName);
+    console.log(`New user created: ${displayName} (ID: ${id})`);
   }
-  return user
+  return user;
 }
 
 /**
- * 指定されたユーザーのスタンプをデータベースに追加します。
- * @param {string} userId - ユーザーのID。
- * @param {string} date - ISO日付文字列 (YYYY-MM-DD)。
- * @param {string} lectureType - 講義の種類。
+ * Adds a stamp to the database for a given user.
+ * @param {string} userId - The user's ID.
+ * @param {string} date - ISO date string (YYYY-MM-DD).
+ * @param {string} lectureId - The ID of the lecture.
  */
-export function addStamp(userId, date, lectureType) {
-  dbAddStamp(userId, date, lectureType)
+export function addStamp(userId, date, lectureId) {
+  dbAddStamp(userId, date, lectureId);
 }
 
 /**
- * セッションIDに関連付けられたユーザーIDを取得します。
- * @param {string} sessionId - セッションID。
- * @returns {string | undefined} ユーザーIDまたはundefined。
+ * Gets the user ID associated with a session.
+ * @param {string} sessionId - The session ID.
+ * @returns {string | undefined} The user ID or undefined.
  */
 export function getUserIdFromSession(sessionId) {
-    return sessions[sessionId]?.userId
+    const session = getDbSession(sessionId);
+    // Also check expiration here for safety
+    if (!session || new Date() > session.expiresAt) {
+        return undefined;
+    }
+    return session.userId;
 }

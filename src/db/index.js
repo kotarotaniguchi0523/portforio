@@ -1,70 +1,106 @@
-import Database from 'better-sqlite3'
-import fs from 'fs'
-import path from 'path'
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
+import * as schema from './schema.js';
+import { eq } from 'drizzle-orm';
 
-// データベースファイルのパス (プロジェクトルートに 'data.db' を作成)
-const dbPath = path.resolve(process.cwd(), 'data.db')
+const sqlite = new Database(process.env.DATABASE_URL);
+export const db = drizzle(sqlite, { schema });
 
-// データベースインスタンスを作成
-const db = new Database(dbPath)
+// --- Seeding ---
+// Seed the database with initial lecture data if it's empty.
+function seedLectures() {
+  const lectures = [
+    { id: 'math', name: '微分積分学' },
+    { id: 'science', name: '量子力学' },
+    { id: 'history', name: '世界史' },
+    { id: 'english', name: '英語コミュニケーション' },
+  ];
 
-// 初回起動時にテーブルを作成する
-try {
-  const schema = fs.readFileSync(path.resolve(process.cwd(), 'src/db/schema.sql'), 'utf8')
-  db.exec(schema)
-  console.log('Database tables are ready.')
-} catch (error) {
-  console.error('Error initializing database:', error)
+  try {
+    const existingLectures = db.select().from(schema.lectures).all();
+    if (existingLectures.length === 0) {
+      console.log('Seeding lectures...');
+      db.insert(schema.lectures).values(lectures).run();
+      console.log('Lectures seeded successfully.');
+    }
+  } catch (error) {
+    console.error('Error seeding lectures:', error);
+  }
 }
+seedLectures();
 
-// データベース操作関数
 
-/**
- * ユーザーIDでユーザーを検索する
- * @param {string} id - LINEのユーザーID
- * @returns {object|undefined} ユーザーオブジェクト or undefined
- */
+// --- Users ---
 export function findUserById(id) {
-  const stmt = db.prepare('SELECT * FROM users WHERE id = ?')
-  return stmt.get(id)
+  return db.query.users.findFirst({
+    where: eq(schema.users.id, id),
+  });
 }
 
-/**
- * 新しいユーザーを作成する
- * @param {string} id - LINEのユーザーID
- * @param {string} displayName - LINEの表示名
- * @returns {object} 作成されたユーザーオブジェクト
- */
 export function createUser(id, displayName) {
-  const stmt = db.prepare('INSERT INTO users (id, displayName) VALUES (?, ?)')
-  stmt.run(id, displayName)
-  return findUserById(id)
+  const newUser = { id, displayName };
+  db.insert(schema.users).values(newUser).run();
+  return newUser;
 }
 
-/**
- * ユーザーのスタンプ情報を取得する（講義情報付き）
- * @param {string} userId - LINEのユーザーID
- * @returns {Array<{date: string, lectureType: string}>} スタンプ情報の配列
- */
+// --- Lectures ---
+export function getLectures() {
+  return db.query.lectures.findMany();
+}
+
+// --- Stamps ---
 export function getUserStampsWithLecture(userId) {
-  const stmt = db.prepare('SELECT date, lectureType FROM stamps WHERE userId = ?')
-  return stmt.all(userId)
+  return db.query.stamps.findMany({
+    where: eq(schema.stamps.userId, userId),
+    with: {
+      lecture: {
+        columns: {
+          name: true,
+        },
+      },
+    },
+  });
 }
 
-/**
- * スタンプを追加または更新する
- * @param {string} userId - LINEのユーザーID
- * @param {string} date - YYYY-MM-DD形式の日付
- * @param {string} lectureType - 講義の種類
- */
-export function addStamp(userId, date, lectureType) {
-  // REPLACE INTOは、PRIMARY KEYが競合した場合にUPDATEを行う
-  const stmt = db.prepare('REPLACE INTO stamps (userId, date, lectureType) VALUES (?, ?, ?)')
-  stmt.run(userId, date, lectureType)
+export function addStamp(userId, date, lectureId) {
+  // Drizzle doesn't have a direct "upsert" for SQLite.
+  // We use `onConflictDoUpdate` which is a common way to handle this.
+  db.insert(schema.stamps)
+    .values({ userId, date, lectureId })
+    .onConflictDoUpdate({
+      target: [schema.stamps.userId, schema.stamps.date],
+      set: { lectureId: lectureId },
+    })
+    .run();
 }
 
-// アプリケーション終了時にデータベース接続を閉じる
-process.on('exit', () => db.close())
-process.on('SIGHUP', () => process.exit(128 + 1))
-process.on('SIGINT', () => process.exit(128 + 2))
-process.on('SIGTERM', () => process.exit(128 + 15))
+
+// --- Sessions ---
+export function createDbSession(sessionId, userId, expiresAt) {
+  db.insert(schema.sessions).values({ id: sessionId, userId, expiresAt }).run();
+}
+
+export function getDbSession(sessionId) {
+  return db.query.sessions.findFirst({
+    where: eq(schema.sessions.id, sessionId),
+  });
+}
+
+export function deleteDbSession(sessionId) {
+  db.delete(schema.sessions).where(eq(schema.sessions.id, sessionId)).run();
+}
+
+export function deleteExpiredSessions() {
+    const now = new Date();
+    db.delete(schema.sessions).where(eq(schema.sessions.expiresAt, now)).run();
+}
+
+// Periodically clean up expired sessions (e.g., every hour)
+setInterval(deleteExpiredSessions, 60 * 60 * 1000);
+
+// Graceful shutdown
+process.on('exit', () => sqlite.close());
+process.on('SIGHUP', () => process.exit(128 + 1));
+process.on('SIGINT', () => process.exit(128 + 2));
+process.on('SIGTERM', () => process.exit(128 + 15));

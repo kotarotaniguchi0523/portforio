@@ -4,8 +4,10 @@ import { jsx } from 'hono/jsx'
 import { LoginPage } from './components/LoginPage.jsx'
 import { CalendarPage, CalendarGrid } from './components/CalendarPage.jsx'
 import { LectureSelectionPage } from './components/LectureSelectionPage.jsx'
+import { ErrorPage } from './components/ErrorPage.jsx'
 // Updated imports
-import { addStamp, getUserIdFromSession, findOrCreateUser, createSession } from '../domain/session.js'
+import { addStamp, getUserIdFromSession, findOrCreateUser, createSession, deleteSession } from '../domain/session.js'
+import { getAvailableLectures } from '../../domain/lectures.js'
 import { getMonthDates } from '../domain/calendar.js'
 import crypto from 'crypto'
 
@@ -41,7 +43,8 @@ appRoutes.get('/select-lecture', (c) => {
   if (!user) {
     return c.redirect('/')
   }
-  return c.render(<LectureSelectionPage username={user.username} />, {
+  const lectures = getAvailableLectures()
+  return c.render(<LectureSelectionPage username={user.username} lectures={lectures} />, {
     title: '講義を選択',
   })
 })
@@ -74,19 +77,29 @@ appRoutes.post('/stamp', async (c) => {
   }
 
   const body = await c.req.parseBody()
-  const lectureType = body.lectureType
+  const lectureId = body.lectureId
 
-  if (!lectureType || typeof lectureType !== 'string') {
-    return c.text('Invalid lecture type.', 400)
+  if (!lectureId || typeof lectureId !== 'string') {
+    return c.text('Invalid lecture ID.', 400)
   }
 
   // Stamp for today's date
   const today = new Date().toISOString().slice(0, 10)
-  addStamp(userId, today, lectureType)
+  addStamp(userId, today, lectureId)
 
   // After stamping, redirect the user to the calendar page
   c.header('HX-Redirect', '/calendar')
   return c.body(null, 200)
+})
+
+// Route: GET /logout - Handle user logout
+appRoutes.get('/logout', (c) => {
+  const sessionId = getCookie(c, 'sessionId')
+  if (sessionId) {
+    deleteSession(sessionId)
+    setCookie(c, 'sessionId', '', { expires: new Date(0), path: '/' })
+  }
+  return c.redirect('/')
 })
 
 // === LINE Login Routes ===
@@ -166,6 +179,8 @@ appRoutes.get('/auth/line/callback', async (c) => {
 
   } catch (error) {
     console.error('LINE Login Error:', error)
-    return c.text('Failed to log in with LINE.', 500)
+    return c.render(<ErrorPage errorTitle="ログインエラー" errorMessage="LINEでのログインに失敗しました。時間をおいて再度お試しください。" />, {
+      title: 'エラー',
+    })
   }
 })

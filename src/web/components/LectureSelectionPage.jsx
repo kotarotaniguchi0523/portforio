@@ -1,15 +1,6 @@
 import { jsx } from 'hono/jsx'
 
-// A hardcoded list of available lectures.
-// In a real application, this might come from a database.
-const lectures = [
-  { id: 'math', name: '微分積分学' },
-  { id: 'science', name: '量子力学' },
-  { id: 'history', name: '世界史' },
-  { id: 'english', name: '英語コミュニケーション' },
-]
-
-export const LectureSelectionPage = ({ username }) => {
+export const LectureSelectionPage = ({ username, lectures = [] }) => {
   return (
     <>
       <style>{`
@@ -26,7 +17,7 @@ export const LectureSelectionPage = ({ username }) => {
         <h2>今日の講義を選択してください</h2>
         <p>出席スタンプを記録します。</p>
         <form hx-post="/stamp" hx-target="body" hx-swap="outerHTML">
-          <select name="lectureType" required>
+          <select name="lectureId" required>
             {lectures.map(lecture => (
               <option value={lecture.id}>{lecture.name}</option>
             ))}
@@ -35,6 +26,9 @@ export const LectureSelectionPage = ({ username }) => {
           <button type="submit">スタンプを押す</button>
         </form>
       </div>
+      <script>
+        {`setTimeout(() => { window.location.href = '/logout'; }, 20000);`}
+      </script>
     </>
   )
 }

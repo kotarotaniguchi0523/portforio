@@ -5,8 +5,10 @@
   "main": "src/main.js",
   "type": "module",
   "scripts": {
-    "dev": "node ./node_modules/tsx/dist/cli.mjs watch src/main.js",
-    "start": "node ./node_modules/tsx/dist/cli.mjs src/main.js"
+    "dev": "tsx watch src/main.js",
+    "start": "tsx src/main.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts"
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,11 @@
     "@line/bot-sdk": "^10.1.1",
     "better-sqlite3": "^12.2.0",
     "dotenv": "^17.2.1",
+    "drizzle-orm": "^0.44.4",
     "hono": "^4.9.0",
     "tsx": "^4.20.3"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.4"
   }
 }

@@ -68,7 +68,9 @@ export const CalendarPage = ({ username, stamps }) => {
     <>
       <style>{`
         body { font-family: sans-serif; background: #f7f9fb; margin: 0; padding: 0; }
-        header { background: #4a90e2; color: white; padding: 1rem 2rem; text-align: center; }
+        header { background: #4a90e2; color: white; padding: 1rem 2rem; text-align: center; position: relative; }
+        .logout-btn { position: absolute; top: 1rem; right: 1rem; background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+        .logout-btn:hover { background: #c0392b; }
         #calendar-container { max-width: 800px; margin: 30px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         .day-header { font-weight: bold; text-align: center; padding: 8px 0; background: #eef3fa; border-radius: 4px; }
@@ -80,13 +82,18 @@ export const CalendarPage = ({ username, stamps }) => {
         .lecture-type-text { font-size: 10px; text-align: right; }
       `}</style>
       <header>
+        <form action="/logout" method="get">
+          <button type="submit" class="logout-btn">ログアウト</button>
+        </form>
         <h1>{monthName}</h1>
         <p>{username} さんのスタンプカレンダー</p>
       </header>
       <div id="calendar-container">
-        {/* Renamed prop from stampsSet to stamps */}
         <CalendarGrid year={year} month={month} dates={dates} stamps={stamps} />
       </div>
+      <script>
+        {`setTimeout(() => { window.location.href = '/logout'; }, 20000);`}
+      </script>
     </>
   )
 }
