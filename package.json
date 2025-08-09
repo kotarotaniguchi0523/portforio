@@ -18,7 +18,15 @@
   "bugs": {
     "url": "https://github.com/kotarotaniguchi0523/portforio/issues"
   },
-  "homepage": "https://github.com/kotarotaniguchi0523/portforio#readme",
+    "url": "git+https://github.com/kotarotaniguchi0523/portfolio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kotarotaniguchi0523/portfolio/issues"
+  },
+  "homepage": "https://github.com/kotarotaniguchi0523/portfolio#readme",
   "dependencies": {
     "@hono/node-server": "^1.18.1",
     "hono": "^4.9.0",
