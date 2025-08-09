@@ -71,18 +71,21 @@ appRoutes.post('/stamp', async (c) => {
   }
 
   const body = await c.req.parseBody()
-  const date = body.date
+  const { date, year, month } = body
+
   if (date && typeof date === 'string' && isValidISODateString(date)) {
     addStampToSession(sessionId, date)
   }
 
-  // After stamping, re-render the calendar grid and return it as HTML
+  // Use the year and month from the request, falling back to the current date
+  // to ensure the correct month is re-rendered.
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const dates = getMonthDates(year, month)
+  const renderYear = year ? parseInt(year, 10) : now.getFullYear()
+  const renderMonth = month ? parseInt(month, 10) : now.getMonth()
+
+  const dates = getMonthDates(renderYear, renderMonth)
   const updatedUser = getSession(sessionId) // Get the most recent session data
 
-  const component = <CalendarGrid year={year} month={month} dates={dates} stampsSet={updatedUser.stamps} />
+  const component = <CalendarGrid year={renderYear} month={renderMonth} dates={dates} stampsSet={updatedUser.stamps} />
   return c.html(component)
 })

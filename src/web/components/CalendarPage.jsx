@@ -25,7 +25,7 @@ export const CalendarGrid = ({ year, month, dates, stampsSet }) => {
 
       if (!isStamped) {
         cellProps['hx-post'] = '/stamp'
-        cellProps['hx-vals'] = JSON.stringify({ date: isoDate })
+        cellProps['hx-vals'] = JSON.stringify({ date: isoDate, year, month })
         cellProps['hx-target'] = '#calendar-grid'
         cellProps['hx-swap'] = 'outerHTML'
       } else {
