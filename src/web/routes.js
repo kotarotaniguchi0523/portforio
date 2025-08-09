@@ -82,6 +82,9 @@ appRoutes.post('/stamp', async (c) => {
   const month = now.getMonth()
   const dates = getMonthDates(year, month)
   const updatedUser = getSession(sessionId) // Get the most recent session data
+  if (!updatedUser) {
+    return c.text('Session expired or invalid', 401)
+  }
 
   const component = <CalendarGrid year={year} month={month} dates={dates} stampsSet={updatedUser.stamps} />
   return c.html(component)
