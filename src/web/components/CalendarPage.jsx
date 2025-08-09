@@ -40,7 +40,7 @@ export const CalendarGrid = ({ year, month, dates, stampsSet }) => {
 
   return (
     <div id="calendar-grid" class="calendar-grid">
-      {...cells}
+      {cells}
     </div>
   )
 }
