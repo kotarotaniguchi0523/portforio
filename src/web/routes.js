@@ -7,14 +7,7 @@ import { LectureSelectionPage } from './components/LectureSelectionPage.jsx'
 // Updated imports
 import { addStamp, getUserIdFromSession, findOrCreateUser, createSession } from '../domain/session.js'
 import { getMonthDates } from '../domain/calendar.js'
-import { Client } from '@line/bot-sdk'
 import crypto from 'crypto'
-
-// LINE SDK Client
-const lineClient = new Client({
-  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.LINE_CHANNEL_SECRET,
-})
 
 /**
  * Validates if a string is a valid ISO 8601 date string (YYYY-MM-DD).
@@ -124,12 +117,39 @@ appRoutes.get('/auth/line/callback', async (c) => {
   }
 
   try {
-    // Exchange code for access token
-    const tokenResponse = await lineClient.issueAccessToken(code, process.env.LINE_CALLBACK_URL)
-    const accessToken = tokenResponse.access_token
+    // Exchange authorization code for access token
+    const tokenUrl = 'https://api.line.me/oauth2/v2.1/token'
+    const tokenParams = new URLSearchParams()
+    tokenParams.append('grant_type', 'authorization_code')
+    tokenParams.append('code', code)
+    tokenParams.append('redirect_uri', process.env.LINE_CALLBACK_URL)
+    tokenParams.append('client_id', process.env.LINE_CHANNEL_ID)
+    tokenParams.append('client_secret', process.env.LINE_CHANNEL_SECRET)
 
-    // Get user profile
-    const profile = await lineClient.getProfile(accessToken)
+    const tokenRes = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: tokenParams,
+    })
+
+    if (!tokenRes.ok) {
+      const errorBody = await tokenRes.text()
+      throw new Error(`Failed to issue token: ${tokenRes.status} ${errorBody}`)
+    }
+    const tokenData = await tokenRes.json()
+    const accessToken = tokenData.access_token
+
+    // Get user profile using the access token
+    const profileUrl = 'https://api.line.me/v2/profile'
+    const profileRes = await fetch(profileUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+
+    if (!profileRes.ok) {
+      const errorBody = await profileRes.text()
+      throw new Error(`Failed to get profile: ${profileRes.status} ${errorBody}`)
+    }
+    const profile = await profileRes.json()
 
     // Find or create user in our database
     const user = findOrCreateUser(profile.userId, profile.displayName)
