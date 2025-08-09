@@ -112,8 +112,11 @@ appRoutes.get('/auth/line/callback', async (c) => {
   const { code, state } = c.req.query()
   const storedState = getCookie(c, 'line_state')
 
-  if (!state || state !== storedState) {
-    return c.text('State mismatch. CSRF attack detected.', 400)
+  // Delete the state cookie immediately after use to prevent reuse.
+  setCookie(c, 'line_state', '', { expires: new Date(0), path: '/' })
+
+  if (!state || !storedState || state !== storedState) {
+    return c.text('State mismatch or cookie missing. CSRF attack detected.', 400)
   }
 
   try {
