@@ -42,18 +42,6 @@ export function createUser(id, displayName) {
 }
 
 /**
- * ユーザーのスタンプセットを取得する
- * @param {string} userId - LINEのユーザーID
- * @returns {Set<string>} スタンプが押された日付 (YYYY-MM-DD) のセット
- */
-export function getUserStamps(userId) {
-  const stmt = db.prepare('SELECT date FROM stamps WHERE userId = ?')
-  const rows = stmt.all(userId)
-  const dates = rows.map(row => row.date)
-  return new Set(dates)
-}
-
-/**
  * ユーザーのスタンプ情報を取得する（講義情報付き）
  * @param {string} userId - LINEのユーザーID
  * @returns {Array<{date: string, lectureType: string}>} スタンプ情報の配列
