@@ -12,7 +12,7 @@ import crypto from 'crypto'
 
 // LINE SDK Client
 const lineClient = new Client({
-  channelAccessToken: '', // Not needed for login
+  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.LINE_CHANNEL_SECRET,
 })
 
