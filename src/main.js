@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import { renderer } from './web/components/Layout.jsx'
 import { sessionMiddleware } from './web/middleware/session.js'
-import { appRoutes } from './web/routes.js'
+import { appRoutes } from './web/routes.jsx'
 
 const app = new Hono()
 

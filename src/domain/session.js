@@ -26,9 +26,9 @@ export function createSession(userId) {
 /**
  * Retrieves user and stamp data based on a session ID.
  * @param {string} sessionId - The ID of the session.
- * @returns {Promise<{user: object, stamps: Array<object>}|undefined>}
+ * @returns {{user: object, stamps: Array<object>}|undefined}
  */
-export async function getSessionData(sessionId) {
+export function getSessionData(sessionId) {
   const session = getDbSession(sessionId);
   if (!session) {
     return undefined;
@@ -36,17 +36,22 @@ export async function getSessionData(sessionId) {
 
   // Check for expiration
   if (new Date() > session.expiresAt) {
-    await deleteDbSession(sessionId);
+    deleteDbSession(sessionId);
     return undefined;
   }
 
   const user = findUserById(session.userId);
   if (!user) {
-    await deleteDbSession(sessionId);
+    deleteDbSession(sessionId);
     return undefined;
   }
 
-  const stamps = getUserStampsWithLecture(user.id);
+  const rawStamps = getUserStampsWithLecture(user.id);
+  // Transform the data structure to match what the view component expects.
+  const stamps = rawStamps.map(stamp => ({
+    date: stamp.date,
+    lectureType: stamp.lectureId, // The component expects 'lectureType'
+  }));
 
   return {
     user: {

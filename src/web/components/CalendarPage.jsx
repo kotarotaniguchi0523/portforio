@@ -31,7 +31,13 @@ export const CalendarGrid = ({ year, month, dates, stamps }) => {
         class: 'calendar-cell',
       }
 
-      if (isStamped) {
+      // If the cell represents a valid date and is not already stamped, make it clickable.
+      if (!isStamped) {
+        cellProps.class += ' clickable'
+        cellProps['hx-get'] = `/calendar/stamp-modal/${isoDate}`
+        cellProps['hx-target'] = '#modal-placeholder'
+        cellProps['hx-swap'] = 'innerHTML'
+      } else {
         cellProps.class += ' stamped'
       }
 
@@ -74,12 +80,24 @@ export const CalendarPage = ({ username, stamps }) => {
         #calendar-container { max-width: 800px; margin: 30px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         .day-header { font-weight: bold; text-align: center; padding: 8px 0; background: #eef3fa; border-radius: 4px; }
-        .calendar-cell { min-height: 80px; position: relative; padding: 8px; border-radius: 6px; /* cursor: pointer removed */ }
+        .calendar-cell { min-height: 80px; position: relative; padding: 8px; border-radius: 6px; }
         .calendar-cell.disabled { background: #f5f5f5; cursor: default; }
         .calendar-cell.stamped { cursor: default; }
+        .calendar-cell.clickable { cursor: pointer; }
+        .calendar-cell.clickable:hover { background: #eef3fa; }
         .date-number { font-size: 14px; font-weight: bold; }
         .stamp { position: absolute; bottom: 5px; right: 5px; font-size: 24px; }
         .lecture-type-text { font-size: 10px; text-align: right; }
+
+        /* Modal styles */
+        #modal-placeholder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; }
+        .modal { border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 0; max-width: 400px; }
+        .modal::backdrop { background: rgba(0, 0, 0, 0.5); }
+        .modal-content { padding: 20px; text-align: center; }
+        .modal-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+        .lecture-select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 1rem; }
+        .btn-confirm { background: #4a90e2; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+        .btn-cancel { background: #ccc; color: black; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
       `}</style>
       <header>
         <form action="/logout" method="get">
@@ -91,6 +109,7 @@ export const CalendarPage = ({ username, stamps }) => {
       <div id="calendar-container">
         <CalendarGrid year={year} month={month} dates={dates} stamps={stamps} />
       </div>
+      <div id="modal-placeholder"></div>
       <script>
         {`setTimeout(() => { window.location.href = '/logout'; }, 20000);`}
       </script>
