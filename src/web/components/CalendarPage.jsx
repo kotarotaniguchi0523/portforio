@@ -9,7 +9,7 @@ export const CalendarPage = ({ username, stampsSet }) => {
   const stampsObj = {}
   stampsSet.forEach((d) => {
     stampsObj[d] = true
-  })
+  const stampsObj = Object.fromEntries([...stampsSet].map(d => [d, true]))
   const monthName = `${year}年${month + 1}月`
 
   const initialData = {
