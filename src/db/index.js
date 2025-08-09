@@ -38,7 +38,8 @@ export function findUserById(id) {
 export function createUser(id, displayName) {
   const stmt = db.prepare('INSERT INTO users (id, displayName) VALUES (?, ?)')
   stmt.run(id, displayName)
-  return findUserById(id)
+  // 2回目のデータベースクエリを避けるために、引数からユーザーオブジェクトを構築します。
+  return { id, displayName }
 }
 
 /**
