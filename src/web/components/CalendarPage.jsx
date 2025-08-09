@@ -49,7 +49,7 @@ export const CalendarPage = ({ username, stampsSet }) => {
           const stampEl = stamped ? jsx('div', { class: 'stamp' }, STAMP_ICON) : null;
           cells.push(
             jsx('div', { class: 'calendar-cell', onClick: () => handleClick(iso) }, dayNumberEl, stampEl)
-          );
+          )
         }
       })
       return jsx('div', { class: 'calendar-grid' }, ...cells)
