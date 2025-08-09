@@ -15,9 +15,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/kotarotaniguchi0523/portforio/issues"
-  },
+  "repository": {
+    "type": "git",
     "url": "git+https://github.com/kotarotaniguchi0523/portfolio.git"
   },
   "keywords": [],
