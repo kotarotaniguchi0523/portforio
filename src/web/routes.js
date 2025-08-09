@@ -25,7 +25,7 @@ appRoutes.post('/login', async (c) => {
   }
 
   const sessionId = createSession(username)
-  setCookie(c, 'sessionId', sessionId, { path: '/', httpOnly: true })
+  setCookie(c, 'sessionId', sessionId, { path: '/', httpOnly: true, secure: c.req.url.startsWith('https://'), sameSite: 'Lax' })
   return c.redirect('/calendar')
 })
 
