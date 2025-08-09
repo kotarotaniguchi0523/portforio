@@ -1,61 +1,56 @@
 import { jsx } from 'hono/jsx'
 import { getMonthDates } from '../../domain/calendar.js'
 
+const STAMP_ICON = '✅'
+
+export const CalendarGrid = ({ year, month, dates, stampsSet }) => {
+  const stampsObj = Object.fromEntries([...stampsSet].map(d => [d, true]))
+  const dayNames = ['日', '月', '火', '水', '木', '金', '土']
+  const cells = dayNames.map(name => <div class="day-header">{name}</div>)
+
+  dates.forEach((date) => {
+    if (!date) {
+      cells.push(<div class="calendar-cell disabled"></div>)
+    } else {
+      const isoDate = date.toISOString().split('T')[0]
+      const dayNumber = date.getDate()
+      const isStamped = stampsObj[isoDate]
+
+      const cellProps = {
+        class: 'calendar-cell',
+      }
+
+      if (!isStamped) {
+        cellProps['hx-post'] = '/stamp'
+        cellProps['hx-vals'] = JSON.stringify({ date: isoDate })
+        cellProps['hx-target'] = '#calendar-grid'
+        cellProps['hx-swap'] = 'outerHTML'
+      } else {
+        cellProps.class += ' stamped'
+      }
+
+      cells.push(
+        <div {...cellProps}>
+          <div class="date-number">{dayNumber}</div>
+          {isStamped && <div class="stamp">{STAMP_ICON}</div>}
+        </div>
+      )
+    }
+  })
+
+  return (
+    <div id="calendar-grid" class="calendar-grid">
+      {...cells}
+    </div>
+  )
+}
+
 export const CalendarPage = ({ username, stampsSet }) => {
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth() // 0‑indexed
   const dates = getMonthDates(year, month)
-  const stampsObj = {}
-  stampsSet.forEach((d) => {
-    stampsObj[d] = true
-  const stampsObj = Object.fromEntries([...stampsSet].map(d => [d, true]))
   const monthName = `${year}年${month + 1}月`
-
-  const initialData = {
-    year,
-    month,
-    dates: dates.map((d) => (d ? d.toISOString().split('T')[0] : null)),
-    stamps: stampsObj,
-  }
-
-  // Client-side script as a string
-  const clientScript = `
-    import { render, useState, jsx } from 'https://esm.sh/hono/jsx/dom'
-    const container = document.getElementById('calendar')
-    const data = JSON.parse(document.getElementById('initial-data').textContent)
-    const STAMP_ICON = '✅'
-
-    function CalendarApp() {
-      const [stamps, setStamps] = useState(data.stamps)
-
-      function handleClick(date) {
-        if (!date || stamps[date]) return
-        const updated = { ...stamps, [date]: true }
-        setStamps(updated)
-        htmx.ajax('POST', '/stamp', { values: { date } })
-      }
-
-      const dayNames = ['日', '月', '火', '水', '木', '金', '土']
-      const cells = dayNames.map(name => jsx('div', { class: 'day-header' }, name))
-
-      data.dates.forEach((iso) => {
-        if (!iso) {
-          cells.push(jsx('div', { class: 'calendar-cell disabled' }, ''))
-        } else {
-          const dayNumber = new Date(iso).getDate()
-          const stamped = stamps[iso]
-          const dayNumberEl = jsx('div', { class: 'date-number' }, dayNumber.toString())
-          const stampEl = stamped ? jsx('div', { class: 'stamp' }, STAMP_ICON) : null;
-          cells.push(
-            jsx('div', { class: 'calendar-cell', onClick: () => handleClick(iso) }, dayNumberEl, stampEl)
-          )
-        }
-      })
-      return jsx('div', { class: 'calendar-grid' }, ...cells)
-    }
-    render(jsx(CalendarApp, {}), container)
-  `
 
   return (
     <>
@@ -68,6 +63,7 @@ export const CalendarPage = ({ username, stampsSet }) => {
         .calendar-cell { min-height: 80px; position: relative; padding: 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
         .calendar-cell:hover { background: #f0f8ff; }
         .calendar-cell.disabled { background: #f5f5f5; cursor: default; }
+        .calendar-cell.stamped { cursor: default; }
         .date-number { font-size: 14px; font-weight: bold; }
         .stamp { position: absolute; bottom: 5px; right: 5px; font-size: 24px; }
       `}</style>
@@ -76,10 +72,8 @@ export const CalendarPage = ({ username, stampsSet }) => {
         <p>{username} さんのスタンプカレンダー</p>
       </header>
       <div id="calendar-container">
-        <div id="calendar"></div>
+        <CalendarGrid year={year} month={month} dates={dates} stampsSet={stampsSet} />
       </div>
-      <script id="initial-data" type="application/json">{JSON.stringify(initialData)}</script>
-      <script type="module">{clientScript}</script>
     </>
   )
 }

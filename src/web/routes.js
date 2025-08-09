@@ -1,8 +1,23 @@
 import { Hono } from 'hono'
 import { setCookie } from 'hono/cookie'
+import { jsx } from 'hono/jsx'
 import { LoginPage } from './components/LoginPage.jsx'
-import { CalendarPage } from './components/CalendarPage.jsx'
-import { createSession, addStampToSession } from '../domain/session.js'
+import { CalendarPage, CalendarGrid } from './components/CalendarPage.jsx'
+import { createSession, addStampToSession, getSession } from '../domain/session.js'
+import { getMonthDates } from '../domain/calendar.js'
+
+/**
+ * Validates if a string is a valid ISO 8601 date string (YYYY-MM-DD).
+ * @param {string} dateString The string to validate.
+ * @returns {boolean} True if the string is a valid date.
+ */
+function isValidISODateString(dateString) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return false
+  }
+  const d = new Date(dateString)
+  return d instanceof Date && !isNaN(d) && d.toISOString().slice(0, 10) === dateString
+}
 
 export const appRoutes = new Hono()
 
@@ -44,24 +59,30 @@ appRoutes.get('/calendar', (c) => {
 appRoutes.post('/stamp', async (c) => {
   const user = c.get('user')
   if (!user) {
-    return c.json({ ok: false, error: 'Unauthorized' }, 401)
+    // NOTE: In a real htmx scenario, you might return a redirect header
+    // or a specific component indicating an error or session timeout.
+    // For now, we'll rely on the user being logged in.
+    return c.text('Unauthorized', 401)
   }
 
-  // We need the session ID to add the stamp
   const sessionId = c.get('sessionId')
   if (!sessionId) {
-    // This case should ideally not happen if the user middleware ran correctly
-    return c.json({ ok: false, error: 'Invalid session' }, 401)
+    return c.text('Invalid session', 401)
   }
 
   const body = await c.req.parseBody()
   const date = body.date
-  if (date && typeof date === 'string') {
-    if (!isValidISODateString(date)) {
-      return c.json({ ok: false, error: 'Invalid date format' }, 400)
-    }
+  if (date && typeof date === 'string' && isValidISODateString(date)) {
     addStampToSession(sessionId, date)
   }
 
-  return c.json({ ok: true })
+  // After stamping, re-render the calendar grid and return it as HTML
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const dates = getMonthDates(year, month)
+  const updatedUser = getSession(sessionId) // Get the most recent session data
+
+  const component = <CalendarGrid year={year} month={month} dates={dates} stampsSet={updatedUser.stamps} />
+  return c.html(component)
 })
