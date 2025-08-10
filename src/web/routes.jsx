@@ -64,7 +64,12 @@ appRoutes.post('/calendar/stamp', async (c) => {
         return c.text('Invalid input', 400);
     }
 
-    addStamp(user.id, date, lectureId);
+    try {
+        await addStamp(user.id, date, lectureId);
+    } catch (err) {
+        console.error('Failed to add stamp:', err);
+        return c.text('Failed to add stamp. Please try again later.', 500);
+    }
 
     // Re-fetch all session data to get updated stamps
     const sessionData = getSessionData(c.get('sessionId'));
