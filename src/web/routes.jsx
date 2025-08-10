@@ -93,7 +93,12 @@ appRoutes.post('/calendar/stamp', async (c) => {
 
     // Return the updated grid and the script to close the modal.
     // We wrap them in a fragment <>...</> to satisfy JSX's single root element rule.
-    return c.html(<>{newGrid}<script>{closeModalScript}</script></>);
+    // The modal should be closed by client-side logic after the grid is updated.
+    // You can use HTMX events or a custom event to trigger modal removal.
+
+    // Return only the updated grid.
+    // We wrap it in a fragment <>...</> to satisfy JSX's single root element rule.
+    return c.html(<>{newGrid}</>);
 });
 
 // Route: GET / - Redirect to calendar if logged in, otherwise show login page
