@@ -15,7 +15,7 @@ export const db = drizzle(sqlite, { schema });
 
 // --- Seeding ---
 // Seed the database with initial lecture data if it's empty.
-function seedLectures(): void {
+export function seedLectures(): void {
 	const lectures = [
 		{
 			id: "math",
@@ -59,7 +59,7 @@ function seedLectures(): void {
 		console.error("Error seeding lectures:", error);
 	}
 }
-seedLectures();
+// Seed data is now triggered from application entrypoints to avoid side effects on import
 
 // --- Users ---
 /**
@@ -189,8 +189,21 @@ export function deleteExpiredSessions(): void {
                 .run();
 }
 
-// Periodically clean up expired sessions (e.g., every hour)
-setInterval(deleteExpiredSessions, 60 * 60 * 1000);
+/**
+ * Start a recurring task to purge expired sessions.
+ * The interval defaults to one hour.
+ */
+const ONE_HOUR_IN_MS = 60 * 60 * 1000;
+
+export function startSessionCleanup(
+        intervalMs = ONE_HOUR_IN_MS,
+): NodeJS.Timeout {
+        const timer = setInterval(deleteExpiredSessions, intervalMs);
+        exitHook(() => clearInterval(timer));
+): void {
+        const timer = setInterval(deleteExpiredSessions, intervalMs);
+        exitHook(() => clearInterval(timer));
+}
 
 // Graceful shutdown
 exitHook(() => sqlite.close());
