@@ -1,5 +1,12 @@
 import { jsxRenderer } from 'hono/jsx-renderer'
 
+/**
+ * Hono's JSX renderer, which acts as the base layout for all pages.
+ * It sets up the basic HTML structure, head, and body tags.
+ * @param {object} props The component props.
+ * @param {import('hono/jsx').Element} props.children The child elements to render inside the body.
+ * @param {string} props.title The title of the HTML page.
+ */
 export const renderer = jsxRenderer(
   ({ children, title }) => {
     return (

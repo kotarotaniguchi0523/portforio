@@ -1,5 +1,12 @@
 import { jsx } from 'hono/jsx'
 
+/**
+ * A page for the user to select a lecture to get a stamp for.
+ * Note: This component may be deprecated or unused in favor of the modal-based stamping flow.
+ * @param {object} props The component props.
+ * @param {string} props.username The display name of the logged-in user.
+ * @param {Array<{id: string, name: string}>} [props.lectures=[]] A list of available lectures.
+ */
 export const LectureSelectionPage = ({ username, lectures = [] }) => {
   return (
     <>

@@ -9,6 +9,14 @@ const LECTURE_ICONS = {
   science: '🧪',
 }
 
+/**
+ * Renders the interactive grid of days for a given month.
+ * @param {object} props The component props.
+ * @param {number} props.year The full year (e.g., 2025).
+ * @param {number} props.month The zero-based month index (0-11).
+ * @param {Array<Date|null>} props.dates An array of Date objects and nulls representing the calendar grid.
+ * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
+ */
 export const CalendarGrid = ({ year, month, dates, stamps }) => {
   // Create a map from date string to lectureType for quick lookups.
   const stampsObj = Object.fromEntries((stamps || []).map(s => [s.date, s.lectureType]))
@@ -63,6 +71,12 @@ export const CalendarGrid = ({ year, month, dates, stamps }) => {
   )
 }
 
+/**
+ * Renders the main calendar page, including the header and the calendar grid.
+ * @param {object} props The component props.
+ * @param {string} props.username The display name of the logged-in user.
+ * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
+ */
 export const CalendarPage = ({ username, stamps }) => {
   const now = new Date()
   const year = now.getFullYear()
