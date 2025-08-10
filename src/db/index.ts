@@ -57,6 +57,7 @@ export function seedLectures(): void {
 		}
 	} catch (error) {
 		console.error("Error seeding lectures:", error);
+		throw error;
 	}
 }
 // Seed data is now triggered from application entrypoints to avoid side effects on import
@@ -196,13 +197,11 @@ export function deleteExpiredSessions(): void {
 const ONE_HOUR_IN_MS = 60 * 60 * 1000;
 
 export function startSessionCleanup(
-        intervalMs = ONE_HOUR_IN_MS,
+	intervalMs = ONE_HOUR_IN_MS,
 ): NodeJS.Timeout {
-        const timer = setInterval(deleteExpiredSessions, intervalMs);
-        exitHook(() => clearInterval(timer));
-): void {
-        const timer = setInterval(deleteExpiredSessions, intervalMs);
-        exitHook(() => clearInterval(timer));
+	const timer = setInterval(deleteExpiredSessions, intervalMs);
+	exitHook(() => clearInterval(timer));
+	return timer;
 }
 
 // Graceful shutdown
