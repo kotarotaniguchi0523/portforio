@@ -43,7 +43,7 @@ appRoutes.get('/calendar/stamp-modal/:date', (c) => {
           </select>
           <div class="modal-actions">
             <button type="submit" class="btn-confirm">Stamp</button>
-            <button type="submit" formmethod="dialog" class="btn-cancel">Cancel</button>
+            <button type="button" class="btn-cancel" onclick="this.closest('dialog').close()">Cancel</button>
           </div>
         </form>
       </div>
