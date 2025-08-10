@@ -38,7 +38,7 @@
 ├── package.json          # プロジェクトの定義と依存関係
 ├── pnpm-lock.yaml        # 依存関係のロックファイル
 ├── playwright.config.ts  # Playwright の設定
-└── ReadMe                # このファイル
+└── README.md             # このファイル
 ```
 
 ## 4. 環境のセットアップ
@@ -89,28 +89,34 @@
 ## 5. 主要なコマンド
 
 - **開発サーバーの起動:**
+
   ```bash
   pnpm run dev
   ```
   ファイル変更を監視し、自動でリロードします。サーバーは `http://localhost:3000` で起動します。
 
 - **本番モードでの起動:**
+
   ```bash
   pnpm run start
   ```
 
 - **ユニットテストの実行:**
+
   ```bash
   pnpm run test
   ```
 
 - **E2Eテストの実行:**
+
   ```bash
   pnpm run test:e2e
   ```
 
 - **データベーススキーマの更新:**
+
   `src/db/schema.ts` を編集した後、以下のコマンドでマイグレーションファイルを生成します。
   ```bash
   pnpm run db:generate
   ```
+
