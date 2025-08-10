@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     environment: 'node',
-    // Exclude e2e test directory from Vitest execution
+    // e2eテストディレクトリをVitestの実行対象から除外する
     exclude: [
       '**/node_modules/**',
       '**/dist/**',

@@ -1,5 +1,3 @@
-import { jsx } from 'hono/jsx'
-
 /**
  * A page for the user to select a lecture to get a stamp for.
  * Note: This component may be deprecated or unused in favor of the modal-based stamping flow.

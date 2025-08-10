@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { setCookie, getCookie } from 'hono/cookie'
-import { LoginPage } from './components/LoginPage.jsx'
-import { CalendarPage, CalendarGrid } from './components/CalendarPage.jsx'
-import { ErrorPage } from './components/ErrorPage.jsx'
+import { LoginPage } from './components/LoginPage.tsx'
+import { CalendarPage, CalendarGrid } from './components/CalendarPage.tsx'
+import { ErrorPage } from './components/ErrorPage.tsx'
 // Domain imports
 import { addStamp, findOrCreateUser, createSession, deleteSession, getSessionData } from '../domain/session.js'
 import { getAvailableLectures } from '../domain/lectures.js'

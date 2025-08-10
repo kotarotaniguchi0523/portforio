@@ -3,3 +3,7 @@ node_modules/
 # Test results
 playwright-report/
 test-results/
+
+# Logs
+*.log
+e2e.log
