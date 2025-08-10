@@ -11,7 +11,12 @@ import crypto from 'crypto'
 
 export const appRoutes = new Hono()
 
-// Route to fetch the modal for stamping a date
+/**
+ * GET /calendar/stamp-modal/:date
+ * Fetches and returns the HTML for a modal dialog that allows a user to
+ * select a lecture and stamp a specific date.
+ * Triggered by htmx when a user clicks on a calendar date.
+ */
 appRoutes.get('/calendar/stamp-modal/:date', (c) => {
   const user = c.get('user');
   if (!user) {
@@ -51,7 +56,12 @@ appRoutes.get('/calendar/stamp-modal/:date', (c) => {
   );
 });
 
-// Route to handle the actual stamping via POST
+/**
+ * POST /calendar/stamp
+ * Handles the form submission from the stamp modal. It records the new stamp
+ * in the database and returns the re-rendered calendar grid HTML to be
+ * swapped in by htmx.
+ */
 appRoutes.post('/calendar/stamp', async (c) => {
     const user = c.get('user');
     if (!user) { return c.text('Unauthorized', 401); }
@@ -101,7 +111,11 @@ appRoutes.post('/calendar/stamp', async (c) => {
     return c.html(<>{newGrid}</>);
 });
 
-// Route: GET / - Redirect to calendar if logged in, otherwise show login page
+/**
+ * GET /
+ * The root route. If the user is logged in, it redirects to the calendar.
+ * Otherwise, it displays the login page.
+ */
 appRoutes.get('/', (c) => {
   const user = c.get('user')
   if (user) {
@@ -110,7 +124,11 @@ appRoutes.get('/', (c) => {
   return c.render(<LoginPage />, { title: 'ログイン' })
 })
 
-// Route: GET /calendar - Show the calendar page
+/**
+ * GET /calendar
+ * Displays the main calendar page for a logged-in user.
+ * Redirects to the login page if the user is not authenticated.
+ */
 appRoutes.get('/calendar', (c) => {
   const user = c.get('user')
   const stamps = c.get('stamps') // Get stamps from context
@@ -124,7 +142,11 @@ appRoutes.get('/calendar', (c) => {
   })
 })
 
-// Route: GET /logout - Handle user logout
+/**
+ * GET /logout
+ * Logs the user out by deleting their session cookie and data,
+ * then redirects to the login page.
+ */
 appRoutes.get('/logout', (c) => {
   const sessionId = getCookie(c, 'sessionId')
   if (sessionId) {
@@ -136,7 +158,12 @@ appRoutes.get('/logout', (c) => {
 
 // === LINE Login Routes ===
 
-// 1. Redirect user to LINE for authentication
+/**
+ * GET /login/line
+ * Step 1 of the LINE Login flow.
+ * Generates a state for CSRF protection, stores it in a cookie,
+ * and redirects the user to LINE's authentication page.
+ */
 appRoutes.get('/login/line', (c) => {
   const state = crypto.randomBytes(16).toString('hex')
   setCookie(c, 'line_state', state, { path: '/', httpOnly: true, secure: c.req.url.startsWith('https://'), sameSite: 'Lax' })
@@ -152,7 +179,14 @@ appRoutes.get('/login/line', (c) => {
   return c.redirect(url)
 })
 
-// 2. Handle callback from LINE
+/**
+ * GET /auth/line/callback
+ * Step 2 of the LINE Login flow.
+ * Handles the callback from LINE after the user authenticates. It validates
+ * the state to prevent CSRF, exchanges the authorization code for an access
+ * token, fetches the user's profile, finds or creates a user in the local
+ * database, creates a new session, and redirects to the calendar page.
+ */
 appRoutes.get('/auth/line/callback', async (c) => {
   const { code, state } = c.req.query()
   const storedState = getCookie(c, 'line_state')
