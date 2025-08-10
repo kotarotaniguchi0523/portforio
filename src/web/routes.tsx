@@ -83,6 +83,7 @@ appRoutes.get("/calendar/stamp-modal/:date", (c) => {
 appRoutes.post("/calendar/stamp", async (c) => {
 	const user = c.get("user");
 	if (!user) {
+		// biome-ignore lint/nursery/noSecrets: 'Unauthorized' is not a secret.
 		return c.text("Unauthorized", 401);
 	}
 
@@ -198,6 +199,7 @@ appRoutes.get("/logout", (c) => {
 appRoutes.get("/login/line", (c) => {
 	if (!env.LINE_CHANNEL_ID || !env.LINE_CALLBACK_URL) {
 		console.error("LINE environment variables are not set.");
+		// biome-ignore lint/nursery/noSecrets: 'Configuration error' is not a secret.
 		return c.text("Configuration error", 500);
 	}
 	const state = nanoid(32);
@@ -248,6 +250,7 @@ appRoutes.get("/auth/line/callback", async (c) => {
 		!env.LINE_CHANNEL_SECRET
 	) {
 		console.error("LINE environment variables are not set.");
+		// biome-ignore lint/nursery/noSecrets: 'Configuration error' is not a secret.
 		return c.text("Configuration error", 500);
 	}
 

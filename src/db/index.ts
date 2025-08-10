@@ -151,7 +151,7 @@ export function deleteDbSession(sessionId: string): void {
  */
 export function deleteExpiredSessions(): void {
 	const now = new Date();
-	db.delete(schema.sessions).where(lte(schema.sessions.expiresAt, now)).run();
+	db.delete(schema.sessions).where(eq(schema.sessions.expiresAt, now)).run();
 }
 
 // Periodically clean up expired sessions (e.g., every hour)

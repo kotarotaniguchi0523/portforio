@@ -5,7 +5,9 @@
  * @param {string} [props.errorMessage='問題が発生しました。しばらくしてからもう一度お試しください。'] The detailed error message.
  */
 export const ErrorPage = ({
+	// biome-ignore lint/nursery/noSecrets: Japanese error messages are not secrets.
 	errorTitle = "エラーが発生しました",
+	// biome-ignore lint/nursery/noSecrets: Japanese error messages are not secrets.
 	errorMessage = "問題が発生しました。しばらくしてからもう一度お試しください。",
 }) => {
 	return (

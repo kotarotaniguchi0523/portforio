@@ -12,8 +12,6 @@ const LECTURE_ICONS: Record<string, string> = {
 /**
  * Renders the interactive grid of days for a given month.
  * @param {object} props The component props.
- * @param {number} props.year The full year (e.g., 2025).
- * @param {number} props.month The zero-based month index (0-11).
  * @param {Array<Date|null>} props.dates An array of Date objects and nulls representing the calendar grid.
  * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
  */
