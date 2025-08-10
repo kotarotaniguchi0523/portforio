@@ -1,13 +1,13 @@
-import { getMonthDates } from '../../domain/calendar.ts'
+import { getMonthDates } from "../../domain/calendar.ts";
 
-type Stamp = { date: string; lectureType: string }
+type Stamp = { date: string; lectureType: string };
 // Map lecture types to icons.
 const LECTURE_ICONS: Record<string, string> = {
-  default: '✅',
-  math: '📐',
-  history: '📜',
-  science: '🧪',
-}
+	default: "✅",
+	math: "📐",
+	history: "📜",
+	science: "🧪",
+};
 
 /**
  * Renders the interactive grid of days for a given month.
@@ -18,64 +18,71 @@ const LECTURE_ICONS: Record<string, string> = {
  * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
  */
 export const CalendarGrid = ({
-  dates,
-  stamps,
+	dates,
+	stamps,
 }: {
-  dates: (Date | null)[]
-  stamps: Stamp[]
+	dates: (Date | null)[];
+	stamps: Stamp[];
 }) => {
-  // Create a map from date string to lectureType for quick lookups.
-  const stampsObj = Object.fromEntries(stamps.map((s) => [s.date, s.lectureType]))
-  const dayNames = ['日', '月', '火', '水', '木', '金', '土']
-  const cells = dayNames.map(name => <div class="day-header">{name}</div>)
+	// Create a map from date string to lectureType for quick lookups.
+	const stampsObj = Object.fromEntries(
+		stamps.map((s) => [s.date, s.lectureType]),
+	);
+	const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
+	const cells = dayNames.map((name) => <div class="day-header">{name}</div>);
 
-  dates.forEach((date) => {
-    if (!date) {
-      cells.push(<div class="calendar-cell disabled"></div>)
-    } else {
-      const y = date.getFullYear()
-      const m = (date.getMonth() + 1).toString().padStart(2, '0')
-      const d = date.getDate().toString().padStart(2, '0')
-      const isoDate = `${y}-${m}-${d}`
-      const dayNumber = date.getDate()
-      const lectureType = stampsObj[isoDate] // This will be the lecture type string or undefined
-      const isStamped = Boolean(lectureType)
+	dates.forEach((date) => {
+		if (!date) {
+			cells.push(<div class="calendar-cell disabled"></div>);
+		} else {
+			const y = date.getFullYear();
+			const m = (date.getMonth() + 1).toString().padStart(2, "0");
+			const d = date.getDate().toString().padStart(2, "0");
+			const isoDate = `${y}-${m}-${d}`;
+			const dayNumber = date.getDate();
+			const lectureType = stampsObj[isoDate]; // This will be the lecture type string or undefined
+			const isStamped = Boolean(lectureType);
 
-      const cellProps = {
-        class: 'calendar-cell',
-      }
+			const cellProps: {
+				class: string;
+				"hx-get"?: string;
+				"hx-target"?: string;
+				"hx-swap"?: string;
+			} = {
+				class: "calendar-cell",
+			};
 
-      // If the cell represents a valid date and is not already stamped, make it clickable.
-      if (!isStamped) {
-        cellProps.class += ' clickable'
-        cellProps['hx-get'] = `/calendar/stamp-modal/${isoDate}`
-        cellProps['hx-target'] = '#modal-placeholder'
-        cellProps['hx-swap'] = 'innerHTML'
-      } else {
-        cellProps.class += ' stamped'
-      }
+			// If the cell represents a valid date and is not already stamped, make it clickable.
+			if (!isStamped) {
+				cellProps.class += " clickable";
+				cellProps["hx-get"] = `/calendar/stamp-modal/${isoDate}`;
+				cellProps["hx-target"] = "#modal-placeholder";
+				cellProps["hx-swap"] = "innerHTML";
+			} else {
+				cellProps.class += " stamped";
+			}
 
-      cells.push(
-        <div {...cellProps}>
-          <div class="date-number">{dayNumber}</div>
-          {isStamped && (
-            <div class="stamp">
-              {LECTURE_ICONS[lectureType] || '❔'}
-              {/* Optional: display lecture type text for debugging */}
-              {/* <div class="lecture-type-text">{lectureType}</div> */}
-            </div>
-          )}
-        </div>
-      )
-    }
-  })
+			cells.push(
+				<div {...cellProps}>
+					<div class="date-number">{dayNumber}</div>
+					{isStamped && (
+						<div class="stamp">
+							{LECTURE_ICONS[lectureType] || "❔"}
+							{/* Optional: display lecture type text for debugging */}
+							{/* <div class="lecture-type-text">{lectureType}</div> */}
+						</div>
+					)}
+				</div>,
+			);
+		}
+	});
 
-  return (
-    <div id="calendar-grid" class="calendar-grid">
-      {...cells}
-    </div>
-  )
-}
+	return (
+		<div id="calendar-grid" class="calendar-grid">
+			{...cells}
+		</div>
+	);
+};
 
 /**
  * Renders the main calendar page, including the header and the calendar grid.
@@ -84,21 +91,21 @@ export const CalendarGrid = ({
  * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
  */
 export const CalendarPage = ({
-  username,
-  stamps,
+	username,
+	stamps,
 }: {
-  username: string
-  stamps: Stamp[]
+	username: string;
+	stamps: Stamp[];
 }) => {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() // 0-indexed
-  const dates = getMonthDates(year, month)
-  const monthName = `${year}年${month + 1}月`
+	const now = new Date();
+	const year = now.getFullYear();
+	const month = now.getMonth(); // 0-indexed
+	const dates = getMonthDates(year, month);
+	const monthName = `${year}年${month + 1}月`;
 
-  return (
-    <>
-      <style>{`
+	return (
+		<>
+			<style>{`
         body { font-family: sans-serif; background: #f7f9fb; margin: 0; padding: 0; }
         header { background: #4a90e2; color: white; padding: 1rem 2rem; text-align: center; position: relative; }
         .logout-btn { position: absolute; top: 1rem; right: 1rem; background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
@@ -125,20 +132,22 @@ export const CalendarPage = ({
         .btn-confirm { background: #4a90e2; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
         .btn-cancel { background: #ccc; color: black; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
       `}</style>
-      <header>
-        <form action="/logout" method="get">
-          <button type="submit" class="logout-btn">ログアウト</button>
-        </form>
-        <h1>{monthName}</h1>
-        <p>{username} さんのスタンプカレンダー</p>
-      </header>
-      <div id="calendar-container">
-        <CalendarGrid dates={dates} stamps={stamps} />
-      </div>
-      <div id="modal-placeholder"></div>
-      <script>
-        {`setTimeout(() => { window.location.href = '/logout'; }, 20000);`}
-      </script>
-    </>
-  )
-}
+			<header>
+				<form action="/logout" method="get">
+					<button type="submit" class="logout-btn">
+						ログアウト
+					</button>
+				</form>
+				<h1>{monthName}</h1>
+				<p>{username} さんのスタンプカレンダー</p>
+			</header>
+			<div id="calendar-container">
+				<CalendarGrid dates={dates} stamps={stamps} />
+			</div>
+			<div id="modal-placeholder"></div>
+			<script>
+				{`setTimeout(() => { window.location.href = '/logout'; }, 20000);`}
+			</script>
+		</>
+	);
+};

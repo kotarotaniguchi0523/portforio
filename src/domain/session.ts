@@ -1,18 +1,18 @@
 import {
-  findUserById,
-  createUser,
-  getUserStampsWithLecture,
-  addStamp as dbAddStamp,
-  createDbSession,
-  getDbSession,
-  deleteDbSession
-} from '../db/index.ts'
-import { nanoid } from 'nanoid'
+	findUserById,
+	createUser,
+	getUserStampsWithLecture,
+	addStamp as dbAddStamp,
+	createDbSession,
+	getDbSession,
+	deleteDbSession,
+} from "../db/index.ts";
+import { nanoid } from "nanoid";
 
 type SessionData = {
-  user: { id: string; username: string }
-  stamps: { date: string; lectureType: string }[]
-}
+	user: { id: string; username: string };
+	stamps: { date: string; lectureType: string }[];
+};
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -22,10 +22,10 @@ const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
  * @returns {string} The new session ID.
  */
 export function createSession(userId: string): string {
-  const sessionId = nanoid();
-  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
-  createDbSession(sessionId, userId, expiresAt);
-  return sessionId;
+	const sessionId = nanoid();
+	const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+	createDbSession(sessionId, userId, expiresAt);
+	return sessionId;
 }
 
 /**
@@ -34,37 +34,36 @@ export function createSession(userId: string): string {
  * @returns {{user: object, stamps: Array<object>}|undefined}
  */
 export function getSessionData(sessionId: string): SessionData | undefined {
-  const session = getDbSession(sessionId);
-  if (!session) {
-    return undefined;
-  }
+	const session = getDbSession(sessionId);
+	if (!session) {
+		return undefined;
+	}
 
-  // Check for expiration
-  if (new Date() > session.expiresAt) {
-    deleteDbSession(sessionId);
-    return undefined;
-  }
+	// Check for expiration
+	if (new Date() > session.expiresAt) {
+		deleteDbSession(sessionId);
+		return undefined;
+	}
 
-  const user = findUserById(session.userId) as { id: string; displayName: string } | undefined;
-  if (!user) {
-    deleteDbSession(sessionId);
-    return undefined;
-  }
+	const user = findUserById(session.userId);
+	if (!user) {
+		deleteDbSession(sessionId);
+		return undefined;
+	}
 
-  const rawStamps = getUserStampsWithLecture(user.id) as Array<{ date: string; lectureId: string }>;
-  // Transform the data structure to match what the view component expects.
-  const stamps = rawStamps.map((stamp) => ({
-    date: stamp.date,
-    lectureType: stamp.lectureId, // The component expects 'lectureType'
-  }));
+	const rawStamps = getUserStampsWithLecture(user.id);
+	const stamps = rawStamps.map((stamp) => ({
+		date: stamp.date,
+		lectureType: stamp.lectureId,
+	}));
 
-  return {
-    user: {
-      id: user.id,
-      username: user.displayName,
-    },
-    stamps,
-  };
+	return {
+		user: {
+			id: user.id,
+			username: user.displayName,
+		},
+		stamps,
+	};
 }
 
 /**
@@ -72,11 +71,10 @@ export function getSessionData(sessionId: string): SessionData | undefined {
  * @param {string} sessionId - The ID of the session to delete.
  */
 export function deleteSession(sessionId: string): void {
-  if (sessionId) {
-    deleteDbSession(sessionId);
-  }
+	if (sessionId) {
+		deleteDbSession(sessionId);
+	}
 }
-
 
 /**
  * Finds a user by their LINE user ID, or creates a new one if they don't exist.
@@ -84,13 +82,16 @@ export function deleteSession(sessionId: string): void {
  * @param {string} displayName - LINE display name.
  * @returns {object} The found or created user object.
  */
-export function findOrCreateUser(id: string, displayName: string): { id: string; displayName: string } {
-  let user = findUserById(id) as { id: string; displayName: string } | undefined;
-  if (!user) {
-    user = createUser(id, displayName);
-    console.log(`New user created: ${displayName} (ID: ${id})`);
-  }
-  return user;
+export function findOrCreateUser(
+	id: string,
+	displayName: string,
+): { id: string; displayName: string } {
+	let user = findUserById(id);
+	if (!user) {
+		user = createUser(id, displayName);
+		console.log(`New user created: ${displayName} (ID: ${id})`);
+	}
+	return user;
 }
 
 /**
@@ -99,8 +100,12 @@ export function findOrCreateUser(id: string, displayName: string): { id: string;
  * @param {string} date - ISO date string (YYYY-MM-DD).
  * @param {string} lectureId - The ID of the lecture.
  */
-export function addStamp(userId: string, date: string, lectureId: string): void {
-  dbAddStamp(userId, date, lectureId);
+export function addStamp(
+	userId: string,
+	date: string,
+	lectureId: string,
+): void {
+	dbAddStamp(userId, date, lectureId);
 }
 
 /**
@@ -109,10 +114,10 @@ export function addStamp(userId: string, date: string, lectureId: string): void 
  * @returns {string | undefined} The user ID or undefined.
  */
 export function getUserIdFromSession(sessionId: string): string | undefined {
-    const session = getDbSession(sessionId);
-    // Also check expiration here for safety
-    if (!session || new Date() > session.expiresAt) {
-        return undefined;
-    }
-    return session.userId;
+	const session = getDbSession(sessionId);
+	// Also check expiration here for safety
+	if (!session || new Date() > session.expiresAt) {
+		return undefined;
+	}
+	return session.userId;
 }

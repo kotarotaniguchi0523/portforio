@@ -1,4 +1,4 @@
-import { jsxRenderer } from 'hono/jsx-renderer'
+import { jsxRenderer } from "hono/jsx-renderer";
 
 /**
  * Hono's JSX renderer, which acts as the base layout for all pages.
@@ -7,19 +7,15 @@ import { jsxRenderer } from 'hono/jsx-renderer'
  * @param {import('hono/jsx').Element} props.children The child elements to render inside the body.
  * @param {string} props.title The title of the HTML page.
  */
-export const renderer = jsxRenderer(
-  ({ children, title }) => {
-    return (
-      <html lang="ja">
-        <head>
-          <meta charset="UTF-8" />
-          <title>{title}</title>
-          <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-        </head>
-        <body>
-          {children}
-        </body>
-      </html>
-    )
-  }
-)
+export const renderer = jsxRenderer(({ children, title }) => {
+	return (
+		<html lang="ja">
+			<head>
+				<meta charset="UTF-8" />
+				<title>{title}</title>
+				<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			</head>
+			<body>{children}</body>
+		</html>
+	);
+});

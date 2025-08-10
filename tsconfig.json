@@ -1,24 +1,26 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "types": ["vitest", "@playwright/test"]
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "drizzle.config.ts",
-    "e2e/**/*.ts",
-    "playwright.config.ts",
-    "vitest.config.ts",
-    "tests/**/*.ts"
-  ]
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"outDir": "./dist",
+		"jsx": "react-jsx",
+		"jsxImportSource": "hono/jsx",
+		"types": ["vitest", "@playwright/test"],
+		"allowImportingTsExtensions": true,
+		"noEmit": true
+	},
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"drizzle.config.ts",
+		"e2e/**/*.ts",
+		"playwright.config.ts",
+		"vitest.config.ts",
+		"tests/**/*.ts"
+	]
 }
