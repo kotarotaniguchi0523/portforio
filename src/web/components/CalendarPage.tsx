@@ -1,7 +1,8 @@
-import { getMonthDates } from '../../domain/calendar.js'
+import { getMonthDates } from '../../domain/calendar.ts'
 
+type Stamp = { date: string; lectureType: string }
 // Map lecture types to icons.
-const LECTURE_ICONS = {
+const LECTURE_ICONS: Record<string, string> = {
   default: '✅',
   math: '📐',
   history: '📜',
@@ -16,9 +17,19 @@ const LECTURE_ICONS = {
  * @param {Array<Date|null>} props.dates An array of Date objects and nulls representing the calendar grid.
  * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
  */
-export const CalendarGrid = ({ year: _year, month: _month, dates, stamps }) => {
+export const CalendarGrid = ({
+  year: _year,
+  month: _month,
+  dates,
+  stamps,
+}: {
+  year: number
+  month: number
+  dates: (Date | null)[]
+  stamps: Stamp[]
+}) => {
   // Create a map from date string to lectureType for quick lookups.
-  const stampsObj = Object.fromEntries((stamps || []).map(s => [s.date, s.lectureType]))
+  const stampsObj = Object.fromEntries(stamps.map((s) => [s.date, s.lectureType]))
   const dayNames = ['日', '月', '火', '水', '木', '金', '土']
   const cells = dayNames.map(name => <div class="day-header">{name}</div>)
 
@@ -76,7 +87,13 @@ export const CalendarGrid = ({ year: _year, month: _month, dates, stamps }) => {
  * @param {string} props.username The display name of the logged-in user.
  * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
  */
-export const CalendarPage = ({ username, stamps }) => {
+export const CalendarPage = ({
+  username,
+  stamps,
+}: {
+  username: string
+  stamps: Stamp[]
+}) => {
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth() // 0-indexed

@@ -1,14 +1,14 @@
 import { Hono } from 'hono'
 import { setCookie, getCookie } from 'hono/cookie'
+import { env } from 'std-env'
+import { nanoid } from 'nanoid'
 import { LoginPage } from './components/LoginPage.tsx'
 import { CalendarPage, CalendarGrid } from './components/CalendarPage.tsx'
 import { ErrorPage } from './components/ErrorPage.tsx'
 // Domain imports
-import { addStamp, findOrCreateUser, createSession, deleteSession, getSessionData } from '../domain/session.js'
-import { getAvailableLectures } from '../domain/lectures.js'
-import { getMonthDates } from '../domain/calendar.js'
-import crypto from 'node:crypto'
-import process from "node:process";
+import { addStamp, findOrCreateUser, createSession, deleteSession, getSessionData } from '../domain/session.ts'
+import { getAvailableLectures } from '../domain/lectures.ts'
+import { getMonthDates } from '../domain/calendar.ts'
 
 export const appRoutes = new Hono()
 
@@ -167,16 +167,17 @@ appRoutes.get('/logout', (c) => {
  * and redirects the user to LINE's authentication page.
  */
 appRoutes.get('/login/line', (c) => {
-  const state = crypto.randomBytes(16).toString('hex')
+  const state = nanoid(32)
   setCookie(c, 'line_state', state, { path: '/', httpOnly: true, secure: c.req.url.startsWith('https://'), sameSite: 'Lax' })
 
-  const scope = 'profile openid'
-  const url = 'https://access.line.me/oauth2/v2.1/authorize?' +
-    `response_type=code` +
-    `&client_id=${process.env.LINE_CHANNEL_ID}` +
-    `&redirect_uri=${process.env.LINE_CALLBACK_URL}` +
-    `&state=${state}` +
-    `&scope=${scope}`
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: env.LINE_CHANNEL_ID,
+    redirect_uri: env.LINE_CALLBACK_URL,
+    state,
+    scope: 'profile openid',
+  })
+  const url = `https://access.line.me/oauth2/v2.1/authorize?${params.toString()}`
 
   return c.redirect(url)
 })
@@ -206,9 +207,9 @@ appRoutes.get('/auth/line/callback', async (c) => {
     const tokenParams = new URLSearchParams()
     tokenParams.append('grant_type', 'authorization_code')
     tokenParams.append('code', code)
-    tokenParams.append('redirect_uri', process.env.LINE_CALLBACK_URL)
-    tokenParams.append('client_id', process.env.LINE_CHANNEL_ID)
-    tokenParams.append('client_secret', process.env.LINE_CHANNEL_SECRET)
+    tokenParams.append('redirect_uri', env.LINE_CALLBACK_URL)
+    tokenParams.append('client_id', env.LINE_CHANNEL_ID)
+    tokenParams.append('client_secret', env.LINE_CHANNEL_SECRET)
 
     const tokenRes = await fetch(tokenUrl, {
       method: 'POST',

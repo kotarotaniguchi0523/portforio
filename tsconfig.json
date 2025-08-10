@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -10,7 +10,7 @@
     "outDir": "./dist",
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "allowJs": true
+    "types": ["vitest", "@playwright/test"]
   },
   "include": [
     "src/**/*.ts",
@@ -18,7 +18,7 @@
     "drizzle.config.ts",
     "e2e/**/*.ts",
     "playwright.config.ts",
-    "vitest.config.js",
-    "tests/**/*.js"
+    "vitest.config.ts",
+    "tests/**/*.ts"
   ]
 }

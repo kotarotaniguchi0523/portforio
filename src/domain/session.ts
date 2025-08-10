@@ -1,4 +1,3 @@
-import crypto from 'node:crypto'
 import {
   findUserById,
   createUser,
@@ -7,7 +6,13 @@ import {
   createDbSession,
   getDbSession,
   deleteDbSession
-} from '../db/index.js'
+} from '../db/index.ts'
+import { nanoid } from 'nanoid'
+
+type SessionData = {
+  user: { id: string; username: string }
+  stamps: { date: string; lectureType: string }[]
+}
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -16,8 +21,8 @@ const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
  * @param {string} userId - The user's persistent ID from the database.
  * @returns {string} The new session ID.
  */
-export function createSession(userId) {
-  const sessionId = crypto.randomUUID();
+export function createSession(userId: string): string {
+  const sessionId = nanoid();
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
   createDbSession(sessionId, userId, expiresAt);
   return sessionId;
@@ -28,7 +33,7 @@ export function createSession(userId) {
  * @param {string} sessionId - The ID of the session.
  * @returns {{user: object, stamps: Array<object>}|undefined}
  */
-export function getSessionData(sessionId) {
+export function getSessionData(sessionId: string): SessionData | undefined {
   const session = getDbSession(sessionId);
   if (!session) {
     return undefined;
@@ -40,15 +45,15 @@ export function getSessionData(sessionId) {
     return undefined;
   }
 
-  const user = findUserById(session.userId);
+  const user = findUserById(session.userId) as { id: string; displayName: string } | undefined;
   if (!user) {
     deleteDbSession(sessionId);
     return undefined;
   }
 
-  const rawStamps = getUserStampsWithLecture(user.id);
+  const rawStamps = getUserStampsWithLecture(user.id) as Array<{ date: string; lectureId: string }>;
   // Transform the data structure to match what the view component expects.
-  const stamps = rawStamps.map(stamp => ({
+  const stamps = rawStamps.map((stamp) => ({
     date: stamp.date,
     lectureType: stamp.lectureId, // The component expects 'lectureType'
   }));
@@ -66,7 +71,7 @@ export function getSessionData(sessionId) {
  * Deletes a session from the database.
  * @param {string} sessionId - The ID of the session to delete.
  */
-export function deleteSession(sessionId) {
+export function deleteSession(sessionId: string): void {
   if (sessionId) {
     deleteDbSession(sessionId);
   }
@@ -79,8 +84,8 @@ export function deleteSession(sessionId) {
  * @param {string} displayName - LINE display name.
  * @returns {object} The found or created user object.
  */
-export function findOrCreateUser(id, displayName) {
-  let user = findUserById(id);
+export function findOrCreateUser(id: string, displayName: string): { id: string; displayName: string } {
+  let user = findUserById(id) as { id: string; displayName: string } | undefined;
   if (!user) {
     user = createUser(id, displayName);
     console.log(`New user created: ${displayName} (ID: ${id})`);
@@ -94,7 +99,7 @@ export function findOrCreateUser(id, displayName) {
  * @param {string} date - ISO date string (YYYY-MM-DD).
  * @param {string} lectureId - The ID of the lecture.
  */
-export function addStamp(userId, date, lectureId) {
+export function addStamp(userId: string, date: string, lectureId: string): void {
   dbAddStamp(userId, date, lectureId);
 }
 
@@ -103,7 +108,7 @@ export function addStamp(userId, date, lectureId) {
  * @param {string} sessionId - The session ID.
  * @returns {string | undefined} The user ID or undefined.
  */
-export function getUserIdFromSession(sessionId) {
+export function getUserIdFromSession(sessionId: string): string | undefined {
     const session = getDbSession(sessionId);
     // Also check expiration here for safety
     if (!session || new Date() > session.expiresAt) {

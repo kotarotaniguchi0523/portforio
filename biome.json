@@ -1,9 +1,10 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
-	"linter": {
-		"enabled": true,
-		"rules": {
+        "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
+        "assist": { "actions": { "source": { "organizeImports": "on" } } },
+        "javascript": {},
+        "linter": {
+                "enabled": true,
+                "rules": {
 			"recommended": true,
 			"suspicious": {},
 			"style": {},
@@ -12,10 +13,10 @@
 			},
 			"security": {},
 			"nursery": {
-				"noImportCycles": "error",
-				"noProcessGlobal": "error",
+                                "noImportCycles": "error",
+                                "noProcessGlobal": "error",
 				"noTsIgnore": "error",
-				"noUnresolvedImports": "error",
+                                "noUnresolvedImports": "error",
 				"noFloatingPromises": "error",
 				"noMisusedPromises": "error",
 				"noUnnecessaryConditions": "error",

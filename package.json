@@ -2,11 +2,11 @@
   "name": "app",
   "version": "1.0.0",
   "description": "",
-  "main": "src/main.js",
+  "main": "src/main.ts",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/main.js",
-    "start": "tsx src/main.js",
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "test": "vitest run",
@@ -31,12 +31,17 @@
     "better-sqlite3": "^12.2.0",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.4",
+    "exit-hook": "^4.0.0",
     "hono": "^4.9.0",
+    "nanoid": "^5.1.5",
+    "std-env": "^3.9.0",
     "tsx": "^4.20.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.4",
     "@playwright/test": "^1.54.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.2.1",
     "drizzle-kit": "^0.31.4",
     "vitest": "^3.2.4"
   },

@@ -1,5 +1,6 @@
 import { getCookie } from 'hono/cookie'
-import { getSessionData } from '../../domain/session.js'
+import type { Context, Next } from 'hono'
+import { getSessionData } from '../../domain/session.ts'
 
 /**
  * Hono middleware to handle user sessions.
@@ -9,7 +10,7 @@ import { getSessionData } from '../../domain/session.js'
  * @param {import('hono').Context} c The Hono context object.
  * @param {import('hono').Next} next The next middleware function in the chain.
  */
-export const sessionMiddleware = async (c, next) => {
+export const sessionMiddleware = async (c: Context, next: Next) => {
   const sessionId = getCookie(c, 'sessionId')
   if (sessionId) {
     const sessionData = getSessionData(sessionId)
