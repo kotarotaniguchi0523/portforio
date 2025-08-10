@@ -1,5 +1,3 @@
-import { jsx } from 'hono/jsx'
-
 /**
  * Renders the login page for the application.
  * It provides a single button to initiate the LINE login flow.

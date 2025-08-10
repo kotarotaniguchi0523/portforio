@@ -61,7 +61,20 @@ erDiagram
 - **ビルド/実行ツール**: [tsx](https://github.com/esbuild-kit/tsx)
 - **マイグレーション**: [drizzle-kit](https://orm.drizzle.team/kit/overview)
 
-## 4. セットアップ
+## 4. パッケージ管理
+
+このプロジェクトでは、パッケージマネージャーとして`pnpm`を使用します。`npm`や`yarn`の使用は禁止されています。
+
+**コマンド実行の例:**
+
+*   **依存関係のインストール:** `pnpm install`
+*   **スクリプトの実行:** `pnpm run <script_name>`
+*   **パッケージの追加:** `pnpm add <package_name>`
+*   **開発者向けパッケージの追加:** `pnpm add -D <package_name>`
+
+`npm`コマンドは使用しないでください。CI/CDプロセスでエラーが発生する可能性があります。
+
+## 5. セットアップ
 
 開発を開始する前に、プロジェクトのルートディレクトリに `.env` ファイルを作成し、以下の環境変数を設定する必要があります。
 
@@ -85,7 +98,7 @@ SESSION_SECRET="replace-this-with-a-long-random-string"
 DATABASE_URL="./data.db"
 ```
 
-## 5. ゴール
+## 6. ゴール
 
 このプロジェクトの主なゴールは、以下の通りです。
 

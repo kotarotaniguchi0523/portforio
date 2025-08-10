@@ -1,29 +1,116 @@
-# スタンプカレンダーアプリ
+# スタンプカレンダー LINEログイン版
 
-このアプリは Node.js で動作するシンプルなカレンダーアプリです。ユーザーがログインすると、当月のカレンダーが表示され、日付をクリックしてスタンプ（✅）を押すことができます。スタンプ情報はサーバー側のセッションに保存され、ページをリロードしても保持されます。インタラクティブな部分は日付をクリックしてスタンプを押す機能のみです。
+## 1. プロジェクト概要
 
-## 特徴
+このアプリケーションは、LINEログインを利用した多機能なスタンプカレンダーです。クリーンアーキテクチャの考え方を採用しており、サーバーサイドはHono、データベース操作にはDrizzle ORMを使用しています。ユーザーはLINEアカウントで安全にログインし、日々の活動をスタンプで記録することができます。
 
-- **htmx**: スタンプを押す際のサーバーへの POST リクエストを送信するのに利用しています。
-- **hono/jsx** と **hono/jsx/dom**: クライアント側でカレンダーを描画する際に JSX ライクな記法と状態管理 (`useState`) を提供する軽量ライブラリです。ブラウザでモジュールとして読み込みます。
-- **サーバーは Node.js** の組み込み `http` モジュールのみで構築しています。外部パッケージのインストールは不要です。
+## 2. アーキテクチャと技術スタック
 
-## 実行方法
+### アーキテクチャ
+- **サーバー**: Node.js 上で動作する Hono アプリケーション。
+- **アーキテクチャ**: 関心事の分離（ドメイン、インフラ、Web）を意識したクリーンアーキテクチャ。
+- **認証**: LINEログインを利用したOAuth 2.0フロー。
+- **永続化**: Drizzle ORM を介して SQLite データベースを操作。
+- **レンダリング**: Hono/JSX によるサーバーサイドレンダリング (SSR)。
+- **動的更新**: HTMX を利用した部分的なページ更新。
 
-1. このディレクトリで Node.js を実行できることを確認してください。
-2. ターミナルで `node index.js` を実行します。デフォルトではポート `3000` でサーバーが起動します。
-3. ブラウザで `http://localhost:3000` にアクセスします。Chrome 等のブラウザで `localhost` へのアクセスがブロックされている場合は、設定を変更するか別のブラウザをご利用ください。
-4. ユーザー名を入力してログインすると、カレンダーが表示されます。日付をクリックするとスタンプが押され、その情報がサーバーに保存されます。
+### 技術スタック
+- **フレームワーク**: [Hono](https://hono.dev/)
+- **UI**: [Hono/JSX](https://hono.dev/guides/jsx)
+- **クライアントサイド**: [htmx](https://htmx.org/)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **データベース**: [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) (SQLite)
+- **パッケージ管理**: [pnpm](https://pnpm.io/)
+- **テスト**: [Vitest](https://vitest.dev/) (ユニット/統合), [Playwright](https://playwright.dev/) (E2E)
+- **実行環境**: [Node.js](https://nodejs.org/) / [tsx](https://github.com/esbuild-kit/tsx)
 
-## ファイル構成
+## 3. フォルダ構成
 
 ```
-calendar-app/
-├── index.js    … Node.js 用のサーバーコード
-└── README.md   … この説明ファイル
+.
+├── e2e/                  # E2Eテスト (Playwright)
+├── src/                  # アプリケーションのソースコード
+│   ├── db/               # Drizzle ORM のスキーマ定義、マイグレーション
+│   ├── domain/           # ビジネスロジック
+│   └── web/              # Hono のルーティング、ミドルウェア、UIコンポーネント
+├── AGENTS.md             # AIエージェント向けの開発ガイド
+├── drizzle.config.ts     # Drizzle Kit の設定
+├── package.json          # プロジェクトの定義と依存関係
+├── pnpm-lock.yaml        # 依存関係のロックファイル
+├── playwright.config.ts  # Playwright の設定
+└── ReadMe                # このファイル
 ```
 
-## メモ
+## 4. 環境のセットアップ
 
-- クライアント側の JSX ランタイムは `https://esm.sh/hono/jsx/dom` から読み込んでいます。ネットワークにアクセスできない環境ではこのモジュールを読み込めないため、アプリのインタラクティブ部分が機能しない場合があります。その場合はネットワーク接続のある環境で実行してください。
-- スタンプは日付ごとに一度だけ押せる仕様です。既にスタンプが押されている日付をクリックしても何も起こりません。
+### 前提条件
+- [Node.js](https://nodejs.org/) (v22.x 推奨)
+- [pnpm](https://pnpm.io/installation)
+
+### 手順
+1.  **リポジトリのクローン:**
+    ```bash
+    git clone <repository-url>
+    cd <repository-name>
+    ```
+
+2.  **依存関係のインストール:**
+    プロジェクトのルートで以下のコマンドを実行します。`npm`や`yarn`は使用しないでください。
+    ```bash
+    pnpm install
+    ```
+
+3.  **環境変数の設定:**
+    プロジェクトのルートに `.env` ファイルを作成し、LINE Developers Consoleから取得した認証情報などを設定します。
+
+    ```env
+    # .env.example
+
+    # LINE Login Credentials
+    LINE_CHANNEL_ID="YOUR_LINE_CHANNEL_ID"
+    LINE_CHANNEL_SECRET="YOUR_LINE_CHANNEL_SECRET"
+    LINE_CALLBACK_URL="http://localhost:3000/auth/line/callback"
+
+    # Session secret for signing cookies
+    # 以下のコマンド等で強力な秘密鍵を生成してください
+    # node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+    SESSION_SECRET="YOUR_STRONG_RANDOM_SECRET"
+
+    # Database file path
+    DATABASE_URL="./data.db"
+    ```
+
+4.  **データベースのマイグレーション:**
+    テーブルを作成するために、以下のコマンドを実行します。
+    ```bash
+    pnpm run db:migrate
+    ```
+
+## 5. 主要なコマンド
+
+- **開発サーバーの起動:**
+  ```bash
+  pnpm run dev
+  ```
+  ファイル変更を監視し、自動でリロードします。サーバーは `http://localhost:3000` で起動します。
+
+- **本番モードでの起動:**
+  ```bash
+  pnpm run start
+  ```
+
+- **ユニットテストの実行:**
+  ```bash
+  pnpm run test
+  ```
+
+- **E2Eテストの実行:**
+  ```bash
+  pnpm run test:e2e
+  ```
+
+- **データベーススキーマの更新:**
+  `src/db/schema.ts` を編集した後、以下のコマンドでマイグレーションファイルを生成します。
+  ```bash
+  pnpm run db:generate
+  ```
