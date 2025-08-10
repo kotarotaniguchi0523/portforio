@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Hono } from 'hono'
 
-vi.mock('../src/domain/session.js', () => ({
+vi.mock('../src/domain/session.ts', () => ({
   addStamp: vi.fn(),
   getSessionData: vi.fn().mockResolvedValue({ stamps: [] }),
   findOrCreateUser: vi.fn(),
@@ -10,7 +10,7 @@ vi.mock('../src/domain/session.js', () => ({
   getUserIdFromSession: vi.fn(),
 }))
 
-vi.mock('../src/domain/lectures.js', () => ({
+vi.mock('../src/domain/lectures.ts', () => ({
   getAvailableLectures: vi.fn(() => [
     { id: 'math', name: 'Math' },
     { id: 'history', name: 'History' },
@@ -18,10 +18,10 @@ vi.mock('../src/domain/lectures.js', () => ({
 }))
 
 import { appRoutes } from '../src/web/routes.tsx'
-import { addStamp, getSessionData } from '../src/domain/session.js'
+import { addStamp, getSessionData } from '../src/domain/session.ts'
 
 describe('calendar stamp routes', () => {
-  let app
+  let app: Hono
   beforeEach(() => {
     addStamp.mockClear()
     getSessionData.mockClear()

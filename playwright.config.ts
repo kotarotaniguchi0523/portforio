@@ -45,7 +45,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'tsx --tsconfig ./tsconfig.json src/main.js',
+    command: 'tsx --tsconfig ./tsconfig.json src/main.ts',
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
     stdout: 'pipe',
