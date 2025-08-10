@@ -7,8 +7,8 @@
  * @param {number} month Zero‑based month (January = 0)
  * @returns {(Date|null)[]} An array of Date objects or nulls
  */
-export function getMonthDates(year, month) {
-  const dates = []
+export function getMonthDates(year: number, month: number): (Date | null)[] {
+  const dates: (Date | null)[] = []
   const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
   // Fill initial blanks for days before the first

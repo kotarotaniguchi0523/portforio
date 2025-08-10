@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { getMonthDates } from '../src/domain/calendar.js'
+import { getMonthDates } from '../src/domain/calendar.ts'
 
 // Helper to count non-null dates
-function countDates(arr) {
+function countDates(arr: Array<Date | null>): number {
   return arr.filter(Boolean).length
 }
 

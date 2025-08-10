@@ -4,9 +4,9 @@ import { LoginPage } from './components/LoginPage.tsx'
 import { CalendarPage, CalendarGrid } from './components/CalendarPage.tsx'
 import { ErrorPage } from './components/ErrorPage.tsx'
 // Domain imports
-import { addStamp, findOrCreateUser, createSession, deleteSession, getSessionData } from '../domain/session.js'
-import { getAvailableLectures } from '../domain/lectures.js'
-import { getMonthDates } from '../domain/calendar.js'
+import { addStamp, findOrCreateUser, createSession, deleteSession, getSessionData } from '../domain/session.ts'
+import { getAvailableLectures } from '../domain/lectures.ts'
+import { getMonthDates } from '../domain/calendar.ts'
 
 export const appRoutes = new Hono()
 
