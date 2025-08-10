@@ -200,7 +200,9 @@ export function startSessionCleanup(
 ): NodeJS.Timeout {
         const timer = setInterval(deleteExpiredSessions, intervalMs);
         exitHook(() => clearInterval(timer));
-        return timer;
+): void {
+        const timer = setInterval(deleteExpiredSessions, intervalMs);
+        exitHook(() => clearInterval(timer));
 }
 
 // Graceful shutdown
