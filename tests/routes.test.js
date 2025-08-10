@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 
 vi.mock('../src/domain/session.js', () => ({
   addStamp: vi.fn(),
-  getSessionData: vi.fn().mockReturnValue({ stamps: [] }),
+  getSessionData: vi.fn().mockResolvedValue({ stamps: [] }),
   findOrCreateUser: vi.fn(),
   createSession: vi.fn(),
   deleteSession: vi.fn(),
