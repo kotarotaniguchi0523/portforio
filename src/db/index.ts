@@ -15,7 +15,7 @@ export const db = drizzle(sqlite, { schema });
 
 // --- Seeding ---
 // Seed the database with initial lecture data if it's empty.
-function seedLectures(): void {
+export function seedLectures(): void {
 	const lectures = [
 		{
 			id: "math",
@@ -57,9 +57,9 @@ function seedLectures(): void {
 		}
 	} catch (error) {
 		console.error("Error seeding lectures:", error);
+		throw error;
 	}
 }
-seedLectures();
 
 // --- Users ---
 /**
