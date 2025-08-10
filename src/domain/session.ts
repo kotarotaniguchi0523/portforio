@@ -1,22 +1,14 @@
 import {
-	findUserById,
-	createUser,
-	getUserStampsWithLecture,
-	addStamp as dbAddStamp,
-	createDbSession,
-	getDbSession,
-	deleteDbSession,
+        findUserById,
+        createUser,
+        getUserStampsWithLecture,
+        addStamp as dbAddStamp,
+        createDbSession,
+        getDbSession,
+        deleteDbSession,
 } from "../db/index.ts";
 import { nanoid } from "nanoid";
-
-type SessionData = {
-	user: { id: string; username: string };
-	stamps: {
-		date: string;
-		lectureName: string | null;
-		iconUrl: string | null;
-	}[];
-};
+import type { SessionData, Stamp } from "./types.ts";
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -55,12 +47,12 @@ export function getSessionData(sessionId: string): SessionData | undefined {
 		return undefined;
 	}
 
-	const rawStamps = getUserStampsWithLecture(user.id);
-	const stamps = rawStamps.map((stamp) => ({
-		date: stamp.date,
-		lectureName: stamp.lectureName,
-		iconUrl: stamp.iconUrl,
-	}));
+        const rawStamps = getUserStampsWithLecture(user.id);
+        const stamps: Stamp[] = rawStamps.map((stamp) => ({
+                date: stamp.date,
+                lectureName: stamp.lectureName,
+                iconUrl: stamp.iconUrl,
+        }));
 
 	return {
 		user: {

@@ -1,16 +1,11 @@
 import { getMonthDates } from "../../domain/calendar.ts";
-
-type Stamp = {
-	date: string;
-	lectureName: string | null;
-	iconUrl: string | null;
-};
+import type { Stamp } from "../../domain/types.ts";
 
 /**
  * Renders the interactive grid of days for a given month.
  * @param {object} props The component props.
  * @param {Array<Date|null>} props.dates An array of Date objects and nulls representing the calendar grid.
- * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
+ * @param {Stamp[]} props.stamps An array of stamp objects for the current user.
  */
 export const CalendarGrid = ({
 	dates,
@@ -83,7 +78,7 @@ export const CalendarGrid = ({
  * Renders the main calendar page, including the header and the calendar grid.
  * @param {object} props The component props.
  * @param {string} props.username The display name of the logged-in user.
- * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
+ * @param {Stamp[]} props.stamps An array of stamp objects for the current user.
  */
 export const CalendarPage = ({
 	username,
