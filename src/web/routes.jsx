@@ -1,3 +1,4 @@
+import { jsx } from 'hono/jsx'
 import { Hono } from 'hono'
 import { setCookie, getCookie } from 'hono/cookie'
 import { LoginPage } from './components/LoginPage.jsx'
