@@ -65,7 +65,6 @@ appRoutes.get('/calendar/stamp-modal/:date', (c) => {
  */
 appRoutes.post('/calendar/stamp', async (c) => {
     const user = c.get('user');
-    // biome-ignore lint/nursery/noSecrets: 'Unauthorized' is not a secret
     if (!user) { return c.text('Unauthorized', 401); }
 
     const body = await c.req.parseBody();

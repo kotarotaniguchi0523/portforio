@@ -18,13 +18,9 @@ const LECTURE_ICONS: Record<string, string> = {
  * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
  */
 export const CalendarGrid = ({
-  year: _year,
-  month: _month,
   dates,
   stamps,
 }: {
-  year: number
-  month: number
   dates: (Date | null)[]
   stamps: Stamp[]
 }) => {
@@ -137,7 +133,7 @@ export const CalendarPage = ({
         <p>{username} さんのスタンプカレンダー</p>
       </header>
       <div id="calendar-container">
-        <CalendarGrid year={year} month={month} dates={dates} stamps={stamps} />
+        <CalendarGrid dates={dates} stamps={stamps} />
       </div>
       <div id="modal-placeholder"></div>
       <script>
