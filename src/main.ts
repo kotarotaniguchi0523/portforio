@@ -18,7 +18,12 @@ app.use(sessionMiddleware);
 app.route("/", appRoutes);
 
 // Initialize infrastructure side effects explicitly
-seedLectures();
+try {
+    seedLectures();
+} catch (error) {
+    console.error("Failed to seed lectures:", error);
+    process.exit(1);
+}
 startSessionCleanup();
 
 const PORT = Number(env.PORT) || 3000;
