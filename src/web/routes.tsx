@@ -170,13 +170,14 @@ appRoutes.get('/login/line', (c) => {
   const state = nanoid(32)
   setCookie(c, 'line_state', state, { path: '/', httpOnly: true, secure: c.req.url.startsWith('https://'), sameSite: 'Lax' })
 
-  const scope = 'profile openid'
-  const url = 'https://access.line.me/oauth2/v2.1/authorize?' +
-    `response_type=code` +
-    `&client_id=${env.LINE_CHANNEL_ID}` +
-    `&redirect_uri=${env.LINE_CALLBACK_URL}` +
-    `&state=${state}` +
-    `&scope=${scope}`
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: env.LINE_CHANNEL_ID,
+    redirect_uri: env.LINE_CALLBACK_URL,
+    state,
+    scope: 'profile openid',
+  })
+  const url = `https://access.line.me/oauth2/v2.1/authorize?${params.toString()}`
 
   return c.redirect(url)
 })
