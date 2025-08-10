@@ -7,6 +7,7 @@ import {
   getDbSession,
   deleteDbSession
 } from '../db/index.ts'
+import { nanoid } from 'nanoid'
 
 type SessionData = {
   user: { id: string; username: string }
@@ -21,7 +22,7 @@ const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
  * @returns {string} The new session ID.
  */
 export function createSession(userId: string): string {
-  const sessionId = crypto.randomUUID();
+  const sessionId = nanoid();
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
   createDbSession(sessionId, userId, expiresAt);
   return sessionId;

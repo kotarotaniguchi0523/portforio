@@ -10,7 +10,7 @@
     "outDir": "./dist",
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "types": ["node", "vitest", "@playwright/test"]
+    "types": ["vitest", "@playwright/test"]
   },
   "include": [
     "src/**/*.ts",

@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
+import { env } from 'std-env'
+import exitHook from 'exit-hook'
 import * as schema from './schema.ts'
 import { eq } from 'drizzle-orm'
 
@@ -8,7 +10,7 @@ type User = { id: string; displayName: string }
 type Lecture = { id: string; name: string }
 type Session = { id: string; userId: string; expiresAt: Date }
 
-const sqlite = new Database(process.env.DATABASE_URL)
+const sqlite = new Database(env.DATABASE_URL)
 export const db = drizzle(sqlite, { schema })
 
 // --- Seeding ---
@@ -150,7 +152,4 @@ export function deleteExpiredSessions(): void {
 setInterval(deleteExpiredSessions, 60 * 60 * 1000)
 
 // Graceful shutdown
-process.on('exit', () => sqlite.close())
-process.on('SIGHUP', () => process.exit(128 + 1))
-process.on('SIGINT', () => process.exit(128 + 2))
-process.on('SIGTERM', () => process.exit(128 + 15))
+exitHook(() => sqlite.close())
