@@ -65,7 +65,7 @@ appRoutes.post('/calendar/stamp', async (c) => {
     }
 
     try {
-        await addStamp(user.id, date, lectureId);
+        addStamp(user.id, date, lectureId);
     } catch (err) {
         console.error('Failed to add stamp:', err);
         return c.text('Failed to add stamp. Please try again later.', 500);
