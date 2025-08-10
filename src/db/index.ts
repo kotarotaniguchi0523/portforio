@@ -17,10 +17,26 @@ export const db = drizzle(sqlite, { schema });
 // Seed the database with initial lecture data if it's empty.
 function seedLectures(): void {
 	const lectures = [
-		{ id: "math", name: "微分積分学" },
-		{ id: "science", name: "量子力学" },
-		{ id: "history", name: "世界史" },
-		{ id: "english", name: "英語コミュニケーション" },
+		{
+			id: "math",
+			name: "微分積分学",
+			iconUrl: "https://placehold.co/32x32/3498db/ffffff?text=M",
+		},
+		{
+			id: "science",
+			name: "量子力学",
+			iconUrl: "https://placehold.co/32x32/2ecc71/ffffff?text=S",
+		},
+		{
+			id: "history",
+			name: "世界史",
+			iconUrl: "https://placehold.co/32x32/e67e22/ffffff?text=H",
+		},
+		{
+			id: "english",
+			name: "英語コミュニケーション",
+			iconUrl: "https://placehold.co/32x32/e74c3c/ffffff?text=E",
+		},
 	];
 
 	try {
@@ -29,6 +45,15 @@ function seedLectures(): void {
 			console.log("Seeding lectures...");
 			db.insert(schema.lectures).values(lectures).run();
 			console.log("Lectures seeded successfully.");
+		} else if (existingLectures.some((l) => !l.iconUrl)) {
+			console.log("Updating existing lectures with icon URLs...");
+			for (const lecture of lectures) {
+				db.update(schema.lectures)
+					.set({ iconUrl: lecture.iconUrl })
+					.where(eq(schema.lectures.id, lecture.id))
+					.run();
+			}
+			console.log("Icon URLs updated for existing lectures.");
 		}
 	} catch (error) {
 		console.error("Error seeding lectures:", error);
@@ -75,13 +100,21 @@ export function getLectures(): Lecture[] {
  */
 export function getUserStampsWithLecture(
 	userId: string,
-): Array<{ date: string; lectureId: string }> {
+): Array<{
+	date: string;
+	lectureId: string;
+	lectureName: string | null;
+	iconUrl: string | null;
+}> {
 	return db
 		.select({
 			date: schema.stamps.date,
 			lectureId: schema.stamps.lectureId,
+			lectureName: schema.lectures.name,
+			iconUrl: schema.lectures.iconUrl,
 		})
 		.from(schema.stamps)
+		.leftJoin(schema.lectures, eq(schema.stamps.lectureId, schema.lectures.id))
 		.where(eq(schema.stamps.userId, userId))
 		.all();
 }
