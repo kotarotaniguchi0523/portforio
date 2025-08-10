@@ -1,4 +1,3 @@
-import { jsx } from 'hono/jsx'
 import { getMonthDates } from '../../domain/calendar.js'
 
 // Map lecture types to icons.

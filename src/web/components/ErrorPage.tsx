@@ -1,5 +1,3 @@
-import { jsx } from 'hono/jsx'
-
 /**
  * A generic error page component.
  * @param {object} props The component props.
