@@ -8,20 +8,18 @@
  * @returns {(Date|null)[]} An array of Date objects or nulls
  */
 export function getMonthDates(year: number, month: number): (Date | null)[] {
-	const dates: (Date | null)[] = [];
-	const firstDay = new Date(year, month, 1);
-	const lastDay = new Date(year, month + 1, 0);
-	// Fill initial blanks for days before the first
-	for (let i = 0; i < firstDay.getDay(); i++) {
-		dates.push(null);
-	}
-	// Actual dates
-	for (let d = 1; d <= lastDay.getDate(); d++) {
-		dates.push(new Date(year, month, d));
-	}
-	// Fill trailing blanks until the length is divisible by 7
-	while (dates.length % 7 !== 0) {
-		dates.push(null);
-	}
-	return dates;
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        const leadingNulls = Array.from({ length: firstDay.getDay() }, () => null);
+        const days = Array.from({ length: lastDay.getDate() }, (_, d) =>
+                new Date(year, month, d + 1),
+        );
+        const totalCells = Math.ceil((leadingNulls.length + days.length) / 7) * 7;
+        const trailingNulls = Array.from(
+                { length: totalCells - (leadingNulls.length + days.length) },
+                () => null,
+        );
+
+        return [...leadingNulls, ...days, ...trailingNulls];
 }
