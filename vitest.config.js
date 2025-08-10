@@ -1,3 +1,4 @@
+/* biome-ignore lint/nursery/noUnresolvedImports: Vitest provides its own config helper */
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({

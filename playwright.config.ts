@@ -1,5 +1,5 @@
+/* biome-ignore lint/nursery/noUnresolvedImports: Playwright provides these */
 import { defineConfig, devices } from '@playwright/test';
-import process from "node:process";
 
 /**
  * See https://playwright.dev/docs/test-configuration.

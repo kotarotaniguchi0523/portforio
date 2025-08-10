@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -10,7 +10,8 @@
     "outDir": "./dist",
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "allowJs": true
+    "allowJs": true,
+    "types": ["node", "vitest", "@playwright/test"]
   },
   "include": [
     "src/**/*.ts",
