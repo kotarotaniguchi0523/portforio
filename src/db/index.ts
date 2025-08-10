@@ -193,8 +193,10 @@ export function deleteExpiredSessions(): void {
  * Start a recurring task to purge expired sessions.
  * The interval defaults to one hour.
  */
+const ONE_HOUR_IN_MS = 60 * 60 * 1000;
+
 export function startSessionCleanup(
-        intervalMs = 60 * 60 * 1000,
+        intervalMs = ONE_HOUR_IN_MS,
 ): NodeJS.Timeout {
         const timer = setInterval(deleteExpiredSessions, intervalMs);
         exitHook(() => clearInterval(timer));
