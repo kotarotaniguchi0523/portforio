@@ -4,7 +4,7 @@ import Database from "better-sqlite3";
 import { env } from "std-env";
 import exitHook from "exit-hook";
 import * as schema from "./schema.ts";
-import { eq } from "drizzle-orm";
+import { eq, lt } from "drizzle-orm";
 
 type User = { id: string; displayName: string };
 type Lecture = { id: string; name: string };
@@ -183,8 +183,10 @@ export function deleteDbSession(sessionId: string): void {
  * Deletes all expired sessions from the database.
  */
 export function deleteExpiredSessions(): void {
-	const now = new Date();
-	db.delete(schema.sessions).where(eq(schema.sessions.expiresAt, now)).run();
+        const now = new Date();
+        db.delete(schema.sessions)
+                .where(lt(schema.sessions.expiresAt, now))
+                .run();
 }
 
 // Periodically clean up expired sessions (e.g., every hour)

@@ -1,11 +1,7 @@
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { getSessionData } from "../../domain/session.ts";
-
-type SessionData = {
-	user: { id: string; username: string };
-	stamps: { date: string; lectureType: string }[];
-};
+import type { SessionData } from "../../domain/types.ts";
 
 type SessionVariables = {
 	user: SessionData["user"] | undefined;
