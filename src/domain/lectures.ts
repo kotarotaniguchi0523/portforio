@@ -1,4 +1,4 @@
-import { getLectures as dbGetLectures } from '../db/index.ts';
+import { getLectures as dbGetLectures } from "../db/index.ts";
 
 /**
  * Retrieves the list of all available lectures.
@@ -7,8 +7,8 @@ import { getLectures as dbGetLectures } from '../db/index.ts';
  * @returns {Array<{id: string, name: string}>} A list of lectures.
  */
 export function getAvailableLectures(): { id: string; name: string }[] {
-  // In a more complex application, this is where you might add
-  // business logic, such as filtering, sorting, or combining data.
-  // For now, it's a direct pass-through to the database layer.
-  return dbGetLectures();
+	// In a more complex application, this is where you might add
+	// business logic, such as filtering, sorting, or combining data.
+	// For now, it's a direct pass-through to the database layer.
+	return dbGetLectures();
 }
