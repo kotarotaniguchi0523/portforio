@@ -2,7 +2,6 @@ import 'dotenv/config';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
-import process from "node:process";
 
 // This migration script is intended to be run from the command line.
 // It connects to the database, applies any pending migrations,

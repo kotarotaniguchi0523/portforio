@@ -1,3 +1,4 @@
+/* biome-ignore lint/nursery/noUnresolvedImports: Playwright provides these */
 import { test, expect } from '@playwright/test';
 
 test('has title and login button', async ({ page }) => {

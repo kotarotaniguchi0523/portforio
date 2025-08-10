@@ -7,8 +7,6 @@ import { ErrorPage } from './components/ErrorPage.tsx'
 import { addStamp, findOrCreateUser, createSession, deleteSession, getSessionData } from '../domain/session.js'
 import { getAvailableLectures } from '../domain/lectures.js'
 import { getMonthDates } from '../domain/calendar.js'
-import crypto from 'node:crypto'
-import process from "node:process";
 
 export const appRoutes = new Hono()
 
