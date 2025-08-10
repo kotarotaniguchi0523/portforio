@@ -8,7 +8,8 @@
     "dev": "tsx watch src/main.js",
     "start": "tsx src/main.js",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate.ts",
+    "test": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,7 @@
     "tsx": "^4.20.3"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.4"
+    "drizzle-kit": "^0.31.4",
+    "vitest": "^3.2.4"
   }
 }
