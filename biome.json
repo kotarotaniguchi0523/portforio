@@ -1,0 +1,27 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"suspicious": {},
+			"style": {},
+			"correctness": {
+				"noUnusedVariables": "error"
+			},
+			"security": {},
+			"nursery": {
+				"noImportCycles": "error",
+				"noProcessGlobal": "error",
+				"noTsIgnore": "error",
+				"noUnresolvedImports": "error",
+				"noFloatingPromises": "error",
+				"noMisusedPromises": "error",
+				"noUnnecessaryConditions": "error",
+				"noImplicitCoercion": "error",
+				"noSecrets": "error"
+			}
+		}
+	}
+}

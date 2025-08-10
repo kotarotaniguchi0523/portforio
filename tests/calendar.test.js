@@ -6,6 +6,7 @@ function countDates(arr) {
   return arr.filter(Boolean).length
 }
 
+// biome-ignore lint/nursery/noSecrets: test description is not a secret
 describe('getMonthDates', () => {
   it('generates 31 days for January 2025 with correct blanks', () => {
     const dates = getMonthDates(2025, 0) // January 2025

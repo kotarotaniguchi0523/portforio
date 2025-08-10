@@ -7,7 +7,8 @@ import { ErrorPage } from './components/ErrorPage.tsx'
 import { addStamp, findOrCreateUser, createSession, deleteSession, getSessionData } from '../domain/session.js'
 import { getAvailableLectures } from '../domain/lectures.js'
 import { getMonthDates } from '../domain/calendar.js'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
+import process from "node:process";
 
 export const appRoutes = new Hono()
 
@@ -64,6 +65,7 @@ appRoutes.get('/calendar/stamp-modal/:date', (c) => {
  */
 appRoutes.post('/calendar/stamp', async (c) => {
     const user = c.get('user');
+    // biome-ignore lint/nursery/noSecrets: 'Unauthorized' is not a secret
     if (!user) { return c.text('Unauthorized', 401); }
 
     const body = await c.req.parseBody();
@@ -94,7 +96,7 @@ appRoutes.post('/calendar/stamp', async (c) => {
     const newGrid = <CalendarGrid year={year} month={month} dates={dates} stamps={stamps} />;
     // This script will be executed by htmx after swapping the content.
     // It finds the modal by its class and removes it from the DOM.
-    const closeModalScript = `
+    const _closeModalScript = `
         const dialog = document.querySelector('.modal');
         if (dialog) {
             dialog.remove();
@@ -108,7 +110,7 @@ appRoutes.post('/calendar/stamp', async (c) => {
 
     // Return only the updated grid.
     // We wrap it in a fragment <>...</> to satisfy JSX's single root element rule.
-    return c.html(<>{newGrid}</>);
+    return c.html(newGrid);
 });
 
 /**
