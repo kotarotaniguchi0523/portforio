@@ -1,30 +1,105 @@
 import { Hono } from 'hono'
 import { setCookie, getCookie } from 'hono/cookie'
-import { jsx } from 'hono/jsx'
 import { LoginPage } from './components/LoginPage.jsx'
 import { CalendarPage, CalendarGrid } from './components/CalendarPage.jsx'
-import { LectureSelectionPage } from './components/LectureSelectionPage.jsx'
 import { ErrorPage } from './components/ErrorPage.jsx'
-// Updated imports
-import { addStamp, getUserIdFromSession, findOrCreateUser, createSession, deleteSession } from '../domain/session.js'
-import { getAvailableLectures } from '../../domain/lectures.js'
+// Domain imports
+import { addStamp, findOrCreateUser, createSession, deleteSession, getSessionData } from '../domain/session.js'
+import { getAvailableLectures } from '../domain/lectures.js'
 import { getMonthDates } from '../domain/calendar.js'
 import crypto from 'crypto'
 
-/**
- * Validates if a string is a valid ISO 8601 date string (YYYY-MM-DD).
- * @param {string} dateString The string to validate.
- * @returns {boolean} True if the string is a valid date.
- */
-function isValidISODateString(dateString) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-    return false
-  }
-  const d = new Date(dateString)
-  return d instanceof Date && !isNaN(d) && d.toISOString().slice(0, 10) === dateString
-}
-
 export const appRoutes = new Hono()
+
+// Route to fetch the modal for stamping a date
+appRoutes.get('/calendar/stamp-modal/:date', (c) => {
+  const user = c.get('user');
+  if (!user) {
+    return c.body(null, 401);
+  }
+  const { date } = c.req.param();
+  const lectures = getAvailableLectures();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return c.text('Invalid date format', 400);
+  }
+
+  // Use a <dialog> element for the modal. HTMX will place this in the DOM.
+  return c.html(
+    <dialog class="modal" open>
+      <div class="modal-content">
+        <p><strong>{date}</strong></p>
+        <p>Which lecture stamp would you like to add?</p>
+        <form
+          hx-post="/calendar/stamp"
+          hx-target="#calendar-grid"
+          hx-swap="outerHTML"
+        >
+          <input type="hidden" name="date" value={date} />
+          <select name="lectureId" class="lecture-select">
+            {lectures.map(lecture => (
+              <option value={lecture.id}>{lecture.name}</option>
+            ))}
+          </select>
+          <div class="modal-actions">
+            <button type="submit" class="btn-confirm">Stamp</button>
+            <button type="button" class="btn-cancel" onclick="this.closest('dialog').close()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+  );
+});
+
+// Route to handle the actual stamping via POST
+appRoutes.post('/calendar/stamp', async (c) => {
+    const user = c.get('user');
+    if (!user) { return c.text('Unauthorized', 401); }
+
+    const body = await c.req.parseBody();
+    const { date, lectureId } = body;
+
+    // Basic validation
+    if (!date || !lectureId || typeof date !== 'string' || typeof lectureId !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return c.text('Invalid input', 400);
+    }
+
+    try {
+        await addStamp(user.id, date, lectureId);
+    } catch (err) {
+        console.error('Failed to add stamp:', err);
+        return c.text('Failed to add stamp. Please try again later.', 500);
+    }
+
+    // Re-fetch all session data to get updated stamps
+    const sessionData = getSessionData(c.get('sessionId'));
+    const stamps = sessionData ? sessionData.stamps : [];
+
+    // Re-render the calendar grid for the month of the stamped date
+    const targetDate = new Date(date);
+    const year = targetDate.getFullYear();
+    const month = targetDate.getMonth();
+    const dates = getMonthDates(year, month);
+
+    const newGrid = <CalendarGrid year={year} month={month} dates={dates} stamps={stamps} />;
+    // This script will be executed by htmx after swapping the content.
+    // It finds the modal by its class and removes it from the DOM.
+    const closeModalScript = `
+        const dialog = document.querySelector('.modal');
+        if (dialog) {
+            dialog.remove();
+        }
+    `;
+
+    // Return the updated grid and the script to close the modal.
+    // We wrap them in a fragment <>...</> to satisfy JSX's single root element rule.
+    // The modal should be closed by client-side logic after the grid is updated.
+    // You can use HTMX events or a custom event to trigger modal removal.
+
+    // Return only the updated grid.
+    // We wrap it in a fragment <>...</> to satisfy JSX's single root element rule.
+    return c.html(<>{newGrid}</>);
+});
 
 // Route: GET / - Redirect to calendar if logged in, otherwise show login page
 appRoutes.get('/', (c) => {
@@ -33,20 +108,6 @@ appRoutes.get('/', (c) => {
     return c.redirect('/calendar')
   }
   return c.render(<LoginPage />, { title: 'ログイン' })
-})
-
-// POST /login route is removed. It will be replaced with LINE Login flow.
-
-// Route: GET /select-lecture - Show the lecture selection page
-appRoutes.get('/select-lecture', (c) => {
-  const user = c.get('user')
-  if (!user) {
-    return c.redirect('/')
-  }
-  const lectures = getAvailableLectures()
-  return c.render(<LectureSelectionPage username={user.username} lectures={lectures} />, {
-    title: '講義を選択',
-  })
 })
 
 // Route: GET /calendar - Show the calendar page
@@ -61,35 +122,6 @@ appRoutes.get('/calendar', (c) => {
   return c.render(<CalendarPage username={user.username} stamps={stamps} />, {
     title: 'スタンプカレンダー',
   })
-})
-
-// Route: POST /stamp - Handle lecture selection and create a stamp
-appRoutes.post('/stamp', async (c) => {
-  const user = c.get('user')
-  if (!user) {
-    return c.text('Unauthorized', 401)
-  }
-
-  const sessionId = c.get('sessionId')
-  const userId = getUserIdFromSession(sessionId)
-  if (!userId) {
-    return c.text('Invalid session', 401)
-  }
-
-  const body = await c.req.parseBody()
-  const lectureId = body.lectureId
-
-  if (!lectureId || typeof lectureId !== 'string') {
-    return c.text('Invalid lecture ID.', 400)
-  }
-
-  // Stamp for today's date
-  const today = new Date().toISOString().slice(0, 10)
-  addStamp(userId, today, lectureId)
-
-  // After stamping, redirect the user to the calendar page
-  c.header('HX-Redirect', '/calendar')
-  return c.body(null, 200)
 })
 
 // Route: GET /logout - Handle user logout
@@ -174,8 +206,8 @@ appRoutes.get('/auth/line/callback', async (c) => {
     const sessionId = createSession(user.id)
     setCookie(c, 'sessionId', sessionId, { path: '/', httpOnly: true, secure: c.req.url.startsWith('https://'), sameSite: 'Lax' })
 
-    // Redirect to the lecture selection page
-    return c.redirect('/select-lecture')
+    // Redirect to the calendar page
+    return c.redirect('/calendar')
 
   } catch (error) {
     console.error('LINE Login Error:', error)
