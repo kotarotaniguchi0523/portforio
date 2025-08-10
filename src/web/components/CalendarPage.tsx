@@ -1,12 +1,9 @@
 import { getMonthDates } from "../../domain/calendar.ts";
 
-type Stamp = { date: string; lectureType: string };
-// Map lecture types to icons.
-const LECTURE_ICONS: Record<string, string> = {
-	default: "✅",
-	math: "📐",
-	history: "📜",
-	science: "🧪",
+type Stamp = {
+	date: string;
+	lectureName: string | null;
+	iconUrl: string | null;
 };
 
 /**
@@ -22,10 +19,8 @@ export const CalendarGrid = ({
 	dates: (Date | null)[];
 	stamps: Stamp[];
 }) => {
-	// Create a map from date string to lectureType for quick lookups.
-	const stampsObj = Object.fromEntries(
-		stamps.map((s) => [s.date, s.lectureType]),
-	);
+	// Create a map from date string to the entire stamp object for quick lookups.
+	const stampsObj = Object.fromEntries(stamps.map((s) => [s.date, s]));
 	const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
 	const cells = dayNames.map((name) => <div class="day-header">{name}</div>);
 
@@ -38,8 +33,8 @@ export const CalendarGrid = ({
 			const d = date.getDate().toString().padStart(2, "0");
 			const isoDate = `${y}-${m}-${d}`;
 			const dayNumber = date.getDate();
-			const lectureType = stampsObj[isoDate]; // This will be the lecture type string or undefined
-			const isStamped = Boolean(lectureType);
+			const stamp = stampsObj[isoDate]; // This will be the Stamp object or undefined
+			const isStamped = Boolean(stamp);
 
 			const cellProps: {
 				class: string;
@@ -63,11 +58,13 @@ export const CalendarGrid = ({
 			cells.push(
 				<div {...cellProps}>
 					<div class="date-number">{dayNumber}</div>
-					{isStamped && (
+					{isStamped && stamp.iconUrl && (
 						<div class="stamp">
-							{LECTURE_ICONS[lectureType] || "❔"}
-							{/* Optional: display lecture type text for debugging */}
-							{/* <div class="lecture-type-text">{lectureType}</div> */}
+							<img
+								src={stamp.iconUrl}
+								alt={stamp.lectureName ?? "Stamp"}
+								style="width: 24px; height: 24px; object-fit: contain;"
+							/>
 						</div>
 					)}
 				</div>,

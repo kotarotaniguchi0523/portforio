@@ -57,7 +57,11 @@ describe("calendar stamp routes", () => {
 
 	it("adds stamp and returns updated grid", async () => {
 		// Arrange: Configure the mock to return a new stamp *after* `addStamp` is called.
-		const newStamp = { date: "2024-09-10", lectureType: "math" };
+		const newStamp = {
+			date: "2024-09-10",
+			lectureName: "Math",
+			iconUrl: "https://example.com/icons/math.png",
+		};
 		(getSessionData as Mock).mockReturnValue({
 			user: { id: "user1", username: "test" },
 			stamps: [newStamp],
@@ -78,11 +82,10 @@ describe("calendar stamp routes", () => {
 		const text = await res.text();
 		expect(addStamp).toHaveBeenCalledWith("user1", "2024-09-10", "math");
 
-		// Now, the important check: does the returned grid contain the stamp?
-		// The component adds a 'stamped' class and the icon '📐' for math.
-		// Let's check for that. A more robust test might parse the HTML, but this is a good start.
+		// Now, the important check: does the returned grid contain the stamp as an image?
 		expect(text).toContain('class="calendar-cell stamped"');
-		expect(text).toContain("📐");
+		expect(text).toContain('<img src="https://example.com/icons/math.png"');
+		expect(text).toContain('alt="Math"');
 	});
 
 	it("handles errors during stamping", async () => {

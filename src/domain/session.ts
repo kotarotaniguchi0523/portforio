@@ -11,7 +11,11 @@ import { nanoid } from "nanoid";
 
 type SessionData = {
 	user: { id: string; username: string };
-	stamps: { date: string; lectureType: string }[];
+	stamps: {
+		date: string;
+		lectureName: string | null;
+		iconUrl: string | null;
+	}[];
 };
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -54,7 +58,8 @@ export function getSessionData(sessionId: string): SessionData | undefined {
 	const rawStamps = getUserStampsWithLecture(user.id);
 	const stamps = rawStamps.map((stamp) => ({
 		date: stamp.date,
-		lectureType: stamp.lectureId,
+		lectureName: stamp.lectureName,
+		iconUrl: stamp.iconUrl,
 	}));
 
 	return {

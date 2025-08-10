@@ -25,6 +25,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const lectures = sqliteTable("lectures", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
+	iconUrl: text("icon_url"),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.default(sql`(strftime('%s', 'now'))`),
