@@ -8,11 +8,16 @@ function countDates(arr) {
 
 describe('getMonthDates', () => {
   it('generates 31 days for January 2025 with correct blanks', () => {
-    const dates = getMonthDates(2025, 0) // January 2025 starts on Wednesday
+    const dates = getMonthDates(2025, 0) // January 2025
     expect(dates.length % 7).toBe(0)
     expect(countDates(dates)).toBe(31)
     expect(dates.slice(0, 3)).toEqual([null, null, null])
-    expect(dates[3]?.getDate()).toBe(1)
+
+    const firstDate = dates[3]
+    expect(firstDate?.getDate()).toBe(1)
+    expect(firstDate?.getMonth()).toBe(0) // Should be January
+    expect(firstDate?.getFullYear()).toBe(2025)
+
     expect(dates[dates.length - 1]).toBeNull()
   })
 
@@ -37,5 +42,23 @@ describe('getMonthDates', () => {
     expect(dates[6]?.getDate()).toBe(1)
     expect(dates.length).toBe(42)
     expect(dates.slice(-5)).toEqual([null, null, null, null, null])
+  })
+
+  describe('invalid inputs', () => {
+    it('handles month index > 11 by rolling over to the next year', () => {
+      // `new Date(2025, 12, 1)` is the same as `new Date(2026, 0, 1)`
+      const dates = getMonthDates(2025, 12)
+      const firstDate = dates.find(Boolean)
+      expect(firstDate?.getFullYear()).toBe(2026)
+      expect(firstDate?.getMonth()).toBe(0) // January
+    })
+
+    it('handles negative month index by rolling back to previous year', () => {
+      // `new Date(2025, -1, 1)` is the same as `new Date(2024, 11, 1)`
+      const dates = getMonthDates(2025, -1)
+      const firstDate = dates.find(Boolean)
+      expect(firstDate?.getFullYear()).toBe(2024)
+      expect(firstDate?.getMonth()).toBe(11) // December
+    })
   })
 })
