@@ -4,6 +4,7 @@ import { serve } from '@hono/node-server'
 import { renderer } from './web/components/Layout.tsx'
 import { sessionMiddleware } from './web/middleware/session.js'
 import { appRoutes } from './web/routes.tsx'
+import process from "node:process";
 
 const app = new Hono()
 

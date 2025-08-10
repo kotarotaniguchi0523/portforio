@@ -16,7 +16,7 @@ const LECTURE_ICONS = {
  * @param {Array<Date|null>} props.dates An array of Date objects and nulls representing the calendar grid.
  * @param {Array<{date: string, lectureType: string}>} props.stamps An array of stamp objects for the current user.
  */
-export const CalendarGrid = ({ year, month, dates, stamps }) => {
+export const CalendarGrid = ({ year: _year, month: _month, dates, stamps }) => {
   // Create a map from date string to lectureType for quick lookups.
   const stampsObj = Object.fromEntries((stamps || []).map(s => [s.date, s.lectureType]))
   const dayNames = ['日', '月', '火', '水', '木', '金', '土']
@@ -32,7 +32,7 @@ export const CalendarGrid = ({ year, month, dates, stamps }) => {
       const isoDate = `${y}-${m}-${d}`
       const dayNumber = date.getDate()
       const lectureType = stampsObj[isoDate] // This will be the lecture type string or undefined
-      const isStamped = !!lectureType
+      const isStamped = Boolean(lectureType)
 
       const cellProps = {
         class: 'calendar-cell',

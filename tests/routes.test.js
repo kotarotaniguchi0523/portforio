@@ -17,7 +17,7 @@ vi.mock('../src/domain/lectures.js', () => ({
   ]),
 }))
 
-import { appRoutes } from '../src/web/routes.jsx'
+import { appRoutes } from '../src/web/routes.tsx'
 import { addStamp, getSessionData } from '../src/domain/session.js'
 
 describe('calendar stamp routes', () => {
