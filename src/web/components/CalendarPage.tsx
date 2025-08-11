@@ -18,7 +18,7 @@ export const CalendarGrid = ({
         const stampsObj = Object.fromEntries(stamps.map((s) => [s.date, s]));
         const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
         const cells = dayNames.map((name) => (
-                <div class="rounded bg-[#eef3fa] py-2 text-center font-bold">{name}</div>
+                <div class="rounded bg-calendar-highlight py-2 text-center font-bold">{name}</div>
         ));
 
         dates.forEach((date) => {
