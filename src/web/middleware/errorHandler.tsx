@@ -26,7 +26,7 @@ export const errorHandler: ErrorHandler<Env> = (err, c) => {
 		appError = new InternalServerError("An unexpected error occurred.");
 	}
 
-	// 2. レスポンス形式を決定する (HTML or JSON)
+	// 2. Determine response format (HTML or JSON)
 	const acceptHeader = c.req.header("Accept") || "";
 	const isHtmlRequest = acceptHeader.includes("text/html");
 
