@@ -7,7 +7,7 @@ vi.mock("../src/domain/session.ts", () => ({
         findOrCreateUser: vi.fn(),
         createSession: vi.fn(),
         deleteSession: vi.fn(),
-        getUserIdFromSession: vi.fn(),
+        getValidSession: vi.fn(),
 }));
 
 vi.mock("../src/domain/lectures.ts", () => ({
@@ -103,6 +103,39 @@ describe("calendar stamp routes", () => {
 		expect(text).toContain('<img src="https://example.com/icons/math.png"');
 		expect(text).toContain('alt="Math"');
 	});
+
+    it("returns calendar grid for the month of the stamped date, not the current month", async () => {
+        // Arrange: Mock that we are stamping a date in October.
+        // The default mock for getCurrentMonth() returns September.
+        const octoberStamp = {
+            date: "2024-10-15",
+            lectureName: "Science",
+            iconUrl: "https://example.com/icons/science.png",
+        };
+        (addStampForSession as Mock).mockReturnValue({
+            user: { id: "user1", username: "test" },
+            stamps: [octoberStamp],
+        });
+
+        // Act
+        const res = await app.request("/calendar/stamp", {
+            method: "POST",
+            body: new URLSearchParams({
+                date: "2024-10-15",
+                lectureId: "science",
+            }).toString(),
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        });
+
+        // Assert
+        expect(res.status).toBe(200);
+        const text = await res.text();
+
+        // September (the mocked "current" month) has 30 days.
+        // October (the stamped month) has 31 days.
+        // If the correct grid for October is returned, it should contain the 31st day.
+        expect(text).toContain(">31</div>");
+    });
 
          it("handles errors during stamping", async () => {
                  // Arrange: Make the stamping function throw an error

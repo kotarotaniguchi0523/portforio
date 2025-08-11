@@ -9,7 +9,10 @@ import {
 } from "../db/index.ts";
 import { nanoid } from "nanoid";
 import type { SessionData, Stamp } from "./types.ts";
-import { insertStampSchema } from "../db/schema.ts";
+import { insertStampSchema, sessions } from "../db/schema.ts";
+import type { InferSelectModel } from "drizzle-orm";
+
+type Session = InferSelectModel<typeof sessions>;
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -30,8 +33,11 @@ export function createSession(userId: string): string {
  * @param {string} sessionId - The ID of the session.
  * @returns {{user: object, stamps: Array<object>}|undefined}
  */
-export function getSessionData(sessionId: string): SessionData | undefined {
-	const session = getDbSession(sessionId);
+export function getSessionData(
+	sessionId: string,
+	existingSession?: Session,
+): SessionData | undefined {
+	const session = existingSession ?? getDbSession(sessionId);
 	if (!session) {
 		return undefined;
 	}
@@ -119,32 +125,31 @@ export function addStamp(
  * @returns {SessionData | undefined} Updated session data or undefined if the session is invalid.
  */
 export function addStampForSession(
-        sessionId: string,
-        date: string,
-        lectureId: string,
+	sessionId: string,
+	date: string,
+	lectureId: string,
 ): SessionData | undefined {
-        const userId = getUserIdFromSession(sessionId);
-        if (!userId) {
-                return undefined;
-        }
-        insertStampSchema.parse({ userId, date, lectureId });
-        if (!userId) {
-                return undefined;
-        }
-        dbAddStamp(userId, date, lectureId);
-        return getSessionData(sessionId);
+	const session = getValidSession(sessionId);
+	if (!session) {
+		return undefined;
+	}
+	const { userId } = session;
+	insertStampSchema.parse({ userId, date, lectureId });
+	dbAddStamp(userId, date, lectureId);
+	// Pass the existing session object to avoid a second DB query
+	return getSessionData(sessionId, session);
 }
 
 /**
- * Gets the user ID associated with a session.
+ * Gets the session object if it exists and is not expired.
  * @param {string} sessionId - The session ID.
- * @returns {string | undefined} The user ID or undefined.
+ * @returns {Session | undefined} The session object or undefined.
  */
-export function getUserIdFromSession(sessionId: string): string | undefined {
+export function getValidSession(sessionId: string): Session | undefined {
 	const session = getDbSession(sessionId);
 	// Also check expiration here for safety
 	if (!session || new Date() > session.expiresAt) {
 		return undefined;
 	}
-	return session.userId;
+	return session;
 }

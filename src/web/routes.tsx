@@ -15,7 +15,7 @@ import {
         deleteSession,
 } from "../domain/session.ts";
 import { getAvailableLectures } from "../domain/lectures.ts";
-import { getCurrentMonth } from "../domain/calendar.ts";
+import { getCurrentMonth, getMonthDates } from "../domain/calendar.ts";
 import type { SessionData } from "../domain/types.ts";
 import { stampInputSchema } from "../db/schema.ts";
 
@@ -119,8 +119,9 @@ appRoutes.post("/calendar/stamp", async (c) => {
                 return c.text("Session not found", 500);
         }
 
-        // Re-render the calendar grid for the current month
-        const { dates } = getCurrentMonth();
+        // Re-render the calendar grid for the month of the stamped date
+        const targetDate = new Date(date);
+        const dates = getMonthDates(targetDate.getFullYear(), targetDate.getMonth());
         const newGrid = <CalendarGrid dates={dates} stamps={sessionData.stamps} />;
 
         // Return only the updated grid.
