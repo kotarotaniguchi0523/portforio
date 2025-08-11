@@ -46,7 +46,7 @@ export const CalendarGrid = ({
 
                         // If the cell represents a valid date and is not already stamped, make it clickable.
                         if (!isStamped) {
-                                cellProps.class += " cursor-pointer hover:bg-[#eef3fa]";
+                                cellProps.class += " cursor-pointer hover:bg-calendar-blue";
                                 cellProps["hx-get"] = `/calendar/stamp-modal/${isoDate}`;
                                 cellProps["hx-target"] = "#modal-placeholder";
                                 cellProps["hx-swap"] = "innerHTML";
