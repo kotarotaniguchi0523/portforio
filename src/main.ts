@@ -8,6 +8,7 @@ import { serveStatic } from "hono/serve-static";
 import process from "node:process";
 import { renderer } from "./web/components/Layout.tsx";
 import { sessionMiddleware } from "./web/middleware/session.ts";
+import { errorHandler } from "./web/middleware/errorHandler.tsx";
 import { appRoutes } from "./web/routes.tsx";
 import { seedLectures, startSessionCleanup } from "./db/index.ts";
 
@@ -17,6 +18,9 @@ const app = new Hono<Env>();
 app.use(renderer);
 app.use(sessionMiddleware);
 app.use("/static/*", serveStatic({ root: "./public" }));
+
+// Register global error handler
+app.onError(errorHandler);
 
 // Register routes
 app.route("/", appRoutes);

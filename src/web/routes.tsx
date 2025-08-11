@@ -7,17 +7,19 @@ import { LoginPage } from "./components/LoginPage.tsx";
 import { CalendarPage, CalendarGrid } from "./components/CalendarPage.tsx";
 import { ErrorPage } from "./components/ErrorPage.tsx";
 import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 // Domain imports
 import {
-        addStampForSession,
-        findOrCreateUser,
-        createSession,
-        deleteSession,
+	addStampForSession,
+	findOrCreateUser,
+	createSession,
+	deleteSession,
 } from "../domain/session.ts";
 import { getAvailableLectures } from "../domain/lectures.ts";
 import { getCurrentMonth, getMonthDates } from "../domain/calendar.ts";
 import type { SessionData } from "../domain/types.ts";
 import { stampInputSchema } from "../db/schema.ts";
+import { UnauthorizedError, ValidationError } from "../lib/result.ts";
 
 export const appRoutes = new Hono<Env>();
 
@@ -92,42 +94,46 @@ appRoutes.get("/calendar/stamp-modal/:date", (c) => {
  * Handles the form submission from the stamp modal. It records the new stamp
  * in the database and returns the re-rendered calendar grid HTML to be
  * swapped in by htmx.
+ * This route is refactored to use the global error handler.
  */
-appRoutes.post("/calendar/stamp", async (c) => {
-        const user = c.get("user");
-        const sessionId = c.get("sessionId");
-        if (!user || !sessionId) {
-                // biome-ignore lint/nursery/noSecrets: 'Unauthorized' is not a secret.
-                return c.text("Unauthorized", 401);
-        }
+appRoutes.post(
+	"/calendar/stamp",
+	zValidator("form", stampInputSchema, (result, c) => {
+		if (!result.success) {
+			// If validation fails, just throw a generic validation error.
+			// The exact error message from Zod seems to be problematic in the test env.
+			throw new ValidationError("Invalid input provided.");
+		}
+	}),
+	async (c) => {
+		const user = c.get("user");
+		const sessionId = c.get("sessionId");
+		if (!user || !sessionId) {
+			// Throw an error that the global handler will catch and convert to a 401 response
+			throw new UnauthorizedError("You must be logged in to add a stamp.");
+		}
 
-        const body = await c.req.parseBody();
-        const parsed = stampInputSchema.safeParse(body);
-        if (!parsed.success) {
-                return c.text("Invalid input", 400);
-        }
-        const { date, lectureId } = parsed.data;
+		// The form data is already validated by zValidator and is available via c.req.valid()
+		const { date, lectureId } = c.req.valid("form");
 
-        let sessionData: SessionData | undefined;
-        try {
-                sessionData = addStampForSession(sessionId, date, lectureId);
-        } catch (err) {
-                console.error("Failed to add stamp:", err);
-                return c.text("Failed to add stamp. Please try again later.", 500);
-        }
-        if (!sessionData) {
-                return c.text("Session not found", 500);
-        }
+		// Call the domain logic which returns a Result type
+		const result = addStampForSession(sessionId, date, lectureId);
 
-        // Re-render the calendar grid for the month of the stamped date
-        const targetDate = new Date(date);
-        const dates = getMonthDates(targetDate.getFullYear(), targetDate.getMonth());
-        const newGrid = <CalendarGrid dates={dates} stamps={sessionData.stamps} />;
+		// Handle the result: throw the error on failure, use the data on success
+		if (!result.success) {
+			throw result.error;
+		}
+		const sessionData = result.data;
 
-        // Return only the updated grid.
-        // We wrap it in a fragment <>...</> to satisfy JSX's single root element rule.
-        return c.html(newGrid);
-});
+		// Re-render the calendar grid for the month of the stamped date
+		const targetDate = new Date(date);
+		const dates = getMonthDates(targetDate.getFullYear(), targetDate.getMonth());
+		const newGrid = <CalendarGrid dates={dates} stamps={sessionData.stamps} />;
+
+		// Return only the updated grid.
+		return c.html(newGrid);
+	},
+);
 
 /**
  * GET /
