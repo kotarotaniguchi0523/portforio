@@ -8,7 +8,6 @@ import { eq, lt } from "drizzle-orm";
 
 type User = { id: string; displayName: string };
 type Lecture = { id: string; name: string };
-type Session = { id: string; userId: string; expiresAt: Date };
 
 const sqlite = new Database(env.DATABASE_URL);
 export const db = drizzle(sqlite, { schema });
@@ -164,7 +163,9 @@ export function createDbSession(
  * @param {string} sessionId The session ID.
  * @returns {object | undefined} The session object or undefined if not found.
  */
-export function getDbSession(sessionId: string): Session | undefined {
+export function getDbSession(
+	sessionId: string,
+): (typeof schema.sessions.$inferSelect) | undefined {
 	return db
 		.select()
 		.from(schema.sessions)

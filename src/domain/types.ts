@@ -5,8 +5,8 @@ export type Stamp = {
 };
 
 export type SessionUser = {
-        id: string;
-        displayName: string;
+	id: string;
+	username: string;
 };
 
 export type SessionData = {

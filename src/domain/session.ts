@@ -9,8 +9,15 @@ import {
 } from "../db/index.ts";
 import { nanoid } from "nanoid";
 import type { SessionData, Stamp } from "./types.ts";
-import { insertStampSchema, sessions } from "../db/schema.ts";
+import { insertStampSchema, type sessions } from "../db/schema.ts";
 import type { InferSelectModel } from "drizzle-orm";
+import {
+	ok,
+	fail,
+	type Result,
+	DomainError,
+	NotFoundError,
+} from "../lib/result.ts";
 
 type Session = InferSelectModel<typeof sessions>;
 
@@ -122,22 +129,48 @@ export function addStamp(
  * @param {string} sessionId - The current session ID.
  * @param {string} date - ISO date string (YYYY-MM-DD).
  * @param {string} lectureId - The lecture to associate with the stamp.
- * @returns {SessionData | undefined} Updated session data or undefined if the session is invalid.
+ * @returns {Result<SessionData, NotFoundError | DomainError>} Updated session data or an error.
  */
 export function addStampForSession(
 	sessionId: string,
 	date: string,
 	lectureId: string,
-): SessionData | undefined {
+): Result<SessionData, NotFoundError | DomainError> {
 	const session = getValidSession(sessionId);
 	if (!session) {
-		return undefined;
+		return fail(new NotFoundError("Session not found or has expired."));
 	}
 	const { userId } = session;
-	insertStampSchema.parse({ userId, date, lectureId });
-	dbAddStamp(userId, date, lectureId);
+
+	try {
+		// The `insertStampSchema` is now validated at the route level by zValidator.
+		// We can keep a check here as a defense-in-depth measure, but it's optional.
+		// For this refactor, we assume the input is valid if it reaches this point.
+		dbAddStamp(userId, date, lectureId);
+	} catch (error) {
+		console.error("Failed to add stamp to database:", error);
+		// Check if the error is a SQLite unique constraint violation.
+		// The specific error object structure depends on the database driver (better-sqlite3).
+		if (error && typeof error === "object" && "code" in error && error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+			return fail(
+				new DomainError(
+					"Failed to add stamp, it might already exist for this date.",
+				),
+			);
+		}
+		// For any other type of error, re-throw it to be caught by the global
+		// error handler, which will classify it as a 500 Internal Server Error.
+		throw error;
+	}
+
 	// Pass the existing session object to avoid a second DB query
-	return getSessionData(sessionId, session);
+	const updatedSessionData = getSessionData(sessionId, session);
+	if (!updatedSessionData) {
+		// This case is unlikely if the session was valid just before, but handle it.
+		return fail(new NotFoundError("Failed to reload session data after update."));
+	}
+
+	return ok(updatedSessionData);
 }
 
 /**

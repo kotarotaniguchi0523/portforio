@@ -28,6 +28,8 @@
 	"homepage": "https://github.com/kotarotaniguchi0523/portfolio#readme",
 	"dependencies": {
 		"@hono/node-server": "^1.18.1",
+		"@hono/zod-openapi": "^1.1.0",
+		"@hono/zod-validator": "^0.7.2",
 		"@line/bot-sdk": "^10.1.1",
 		"better-sqlite3": "^12.2.0",
 		"dotenv": "^17.2.1",
