@@ -44,7 +44,7 @@ export const errorHandler: ErrorHandler<Env> = (err, c) => {
 		);
 	}
 
-	// JSONリクエストの場合はJSONレスポンスを返す
+	// Return JSON response for JSON requests
 	c.status(appError.statusCode);
 	return c.json({
 		error: {
