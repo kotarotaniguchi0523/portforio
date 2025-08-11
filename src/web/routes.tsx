@@ -9,14 +9,14 @@ import { ErrorPage } from "./components/ErrorPage.tsx";
 import { z } from "zod";
 // Domain imports
 import {
-	addStamp,
-	findOrCreateUser,
-	createSession,
-	deleteSession,
-	getSessionData,
+        addStampForSession,
+        findOrCreateUser,
+        createSession,
+        deleteSession,
 } from "../domain/session.ts";
 import { getAvailableLectures } from "../domain/lectures.ts";
-import { getMonthDates } from "../domain/calendar.ts";
+import { getCurrentMonth, getMonthDates } from "../domain/calendar.ts";
+import type { SessionData } from "../domain/types.ts";
 import { stampInputSchema } from "../db/schema.ts";
 
 export const appRoutes = new Hono<Env>();
@@ -94,59 +94,39 @@ appRoutes.get("/calendar/stamp-modal/:date", (c) => {
  * swapped in by htmx.
  */
 appRoutes.post("/calendar/stamp", async (c) => {
-	const user = c.get("user");
-	if (!user) {
-		// biome-ignore lint/nursery/noSecrets: 'Unauthorized' is not a secret.
-		return c.text("Unauthorized", 401);
-	}
-
-	const body = await c.req.parseBody();
-	const parsed = stampInputSchema.safeParse(body);
-	if (!parsed.success) {
-		return c.text("Invalid input", 400);
-	}
-	const { date, lectureId } = parsed.data;
-
-	try {
-		addStamp(user.id, date, lectureId);
-	} catch (err) {
-		console.error("Failed to add stamp:", err);
-		return c.text("Failed to add stamp. Please try again later.", 500);
-	}
-
-	// Re-fetch all session data to get updated stamps
-	const sessionId = c.get("sessionId");
-	if (!sessionId) {
-		// This should not happen if the user was authenticated, but it's a good safeguard.
-		return c.text("Session not found", 500);
-	}
-	const sessionData = getSessionData(sessionId);
-	const stamps = sessionData ? sessionData.stamps : [];
-
-	// Re-render the calendar grid for the month of the stamped date
-	const targetDate = new Date(date);
-	const year = targetDate.getFullYear();
-	const month = targetDate.getMonth();
-	const dates = getMonthDates(year, month);
-
-	const newGrid = <CalendarGrid dates={dates} stamps={stamps} />;
-	// This script will be executed by htmx after swapping the content.
-	// It finds the modal by its class and removes it from the DOM.
-	const _closeModalScript = `
-        const dialog = document.querySelector('.modal');
-        if (dialog) {
-            dialog.remove();
+        const user = c.get("user");
+        const sessionId = c.get("sessionId");
+        if (!user || !sessionId) {
+                // biome-ignore lint/nursery/noSecrets: 'Unauthorized' is not a secret.
+                return c.text("Unauthorized", 401);
         }
-    `;
 
-	// Return the updated grid and the script to close the modal.
-	// We wrap them in a fragment <>...</> to satisfy JSX's single root element rule.
-	// The modal should be closed by client-side logic after the grid is updated.
-	// You can use HTMX events or a custom event to trigger modal removal.
+        const body = await c.req.parseBody();
+        const parsed = stampInputSchema.safeParse(body);
+        if (!parsed.success) {
+                return c.text("Invalid input", 400);
+        }
+        const { date, lectureId } = parsed.data;
 
-	// Return only the updated grid.
-	// We wrap it in a fragment <>...</> to satisfy JSX's single root element rule.
-	return c.html(newGrid);
+        let sessionData: SessionData | undefined;
+        try {
+                sessionData = addStampForSession(sessionId, date, lectureId);
+        } catch (err) {
+                console.error("Failed to add stamp:", err);
+                return c.text("Failed to add stamp. Please try again later.", 500);
+        }
+        if (!sessionData) {
+                return c.text("Session not found", 500);
+        }
+
+        // Re-render the calendar grid for the month of the stamped date
+        const targetDate = new Date(date);
+        const dates = getMonthDates(targetDate.getFullYear(), targetDate.getMonth());
+        const newGrid = <CalendarGrid dates={dates} stamps={sessionData.stamps} />;
+
+        // Return only the updated grid.
+        // We wrap it in a fragment <>...</> to satisfy JSX's single root element rule.
+        return c.html(newGrid);
 });
 
 /**
@@ -168,16 +148,24 @@ appRoutes.get("/", (c) => {
  * Redirects to the login page if the user is not authenticated.
  */
 appRoutes.get("/calendar", (c) => {
-	const user = c.get("user");
-	const stamps = c.get("stamps") ?? []; // Get stamps from context
-	if (!user) {
-		return c.redirect("/");
-	}
-	// Pass the array of stamp objects to the component.
-	// The component will need to be updated to handle this new data structure.
-	return c.render(<CalendarPage username={user.username} stamps={stamps} />, {
-		title: "スタンプカレンダー",
-	});
+        const user = c.get("user");
+        const stamps = c.get("stamps") ?? []; // Get stamps from context
+        if (!user) {
+                return c.redirect("/");
+        }
+        const { dates, year, month } = getCurrentMonth();
+        return c.render(
+                <CalendarPage
+                        username={user.username}
+                        stamps={stamps}
+                        dates={dates}
+                        year={year}
+                        month={month}
+                />,
+                {
+                        title: "スタンプカレンダー",
+                },
+        );
 });
 
 /**
