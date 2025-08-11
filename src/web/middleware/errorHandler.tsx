@@ -39,7 +39,7 @@ export const errorHandler: ErrorHandler<Env> = (err, c) => {
 				errorMessage={appError.message}
 			/>,
 			{
-				title: "エラー",
+				title: "Error",
 			},
 		);
 	}
