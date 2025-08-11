@@ -32,7 +32,7 @@ export const errorHandler: ErrorHandler<Env> = (err, c) => {
 
 	if (isHtmlRequest) {
 		// HTMLリクエストの場合はエラーページをレンダリング
-		// `c.render` は `Layout.tsx` の `renderer` ミドルウェアによって提供される
+		// `c.render` is provided by the `renderer` middleware in `Layout.tsx`
 		return c.render(
 			<ErrorPage
 				errorTitle={`${appError.statusCode} ${appError.name}`}
