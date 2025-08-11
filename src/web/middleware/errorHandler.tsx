@@ -8,7 +8,7 @@ import type { Env } from "../../types";
  * Global error handler middleware for the entire application.
  */
 export const errorHandler: ErrorHandler<Env> = (err, c) => {
-	// 1. エラーを正規化する
+	// 1. Normalize the error
 	let appError: AppError;
 	if (err instanceof AppError) {
 		appError = err;
