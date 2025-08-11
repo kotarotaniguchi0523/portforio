@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { LoginPage } from "./components/LoginPage.tsx";
 import { CalendarPage, CalendarGrid } from "./components/CalendarPage.tsx";
 import { ErrorPage } from "./components/ErrorPage.tsx";
+import { z } from "zod";
 // Domain imports
 import {
 	addStamp,
@@ -16,6 +17,7 @@ import {
 } from "../domain/session.ts";
 import { getAvailableLectures } from "../domain/lectures.ts";
 import { getMonthDates } from "../domain/calendar.ts";
+import { stampInputSchema } from "../db/schema.ts";
 
 export const appRoutes = new Hono<Env>();
 
@@ -30,57 +32,59 @@ appRoutes.get("/calendar/stamp-modal/:date", (c) => {
 	if (!user) {
 		return c.body(null, 401);
 	}
-	const { date } = c.req.param();
-	const lectures = getAvailableLectures();
-
-	if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+	const parsed = z
+		.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) })
+		.safeParse(c.req.param());
+	if (!parsed.success) {
 		return c.text("Invalid date format", 400);
 	}
+	const { date } = parsed.data;
+	const lectures = getAvailableLectures();
 
 	// Use a <dialog> element for the modal. HTMX will place this in the DOM.
-        return c.html(
-                <dialog
-                        open
-                        class="max-w-md rounded-lg shadow-lg [&::backdrop]:bg-black/50"
-                >
-                        <div class="p-5 text-center">
-                                <p>
-                                        <strong>{date}</strong>
-                                </p>
-                                <p>Which lecture stamp would you like to add?</p>
-                                <form
-                                        hx-post="/calendar/stamp"
-                                        hx-target="#calendar-grid"
-                                        hx-swap="outerHTML"
-                                >
-                                        <input type="hidden" name="date" value={date} />
-                                        <select
-                                                name="lectureId"
-                                                class="mb-4 w-full rounded border border-gray-300 p-2"
-                                        >
-                                                {lectures.map((lecture) => (
-                                                        <option value={lecture.id}>{lecture.name}</option>
-                                                ))}
-                                        </select>
-                                        <div class="mt-5 flex justify-end gap-2">
-                                                <button
-                                                        type="submit"
-                                                        class="rounded bg-brand-blue px-3 py-2 text-white"
-                                                >
-                                                        Stamp
-                                                </button>
-                                                <button
-                                                        type="button"
-                                                        class="rounded bg-[#ccc] px-3 py-2 text-black"
-                                                        onclick="this.closest('dialog').close()"
-                                                >
-                                                        Cancel
-                                                </button>
-                                        </div>
-                                </form>
-                        </div>
-                </dialog>,
-        );
+	return c.html(
+		<dialog
+			open
+			class="max-w-md rounded-lg shadow-lg [&::backdrop]:bg-black/50"
+		>
+			<div class="p-5 text-center">
+				<p>
+					<strong>{date}</strong>
+				</p>
+				<p>Which lecture stamp would you like to add?</p>
+				<form
+					hx-post="/calendar/stamp"
+					hx-target="#calendar-grid"
+					hx-swap="outerHTML"
+				>
+					<input type="hidden" name="date" value={date} />
+					<select
+						name="lectureId"
+						class="mb-4 w-full rounded border border-gray-300 p-2"
+					>
+						{lectures.map((lecture) => (
+							<option value={lecture.id}>{lecture.name}</option>
+						))}
+					</select>
+					<div class="mt-5 flex justify-end gap-2">
+						<button
+							type="submit"
+							class="rounded bg-brand-blue px-3 py-2 text-white"
+						>
+							Stamp
+						</button>
+						<button
+							type="button"
+							class="rounded bg-[#ccc] px-3 py-2 text-black"
+							onclick="this.closest('dialog').close()"
+						>
+							Cancel
+						</button>
+					</div>
+				</form>
+			</div>
+		</dialog>,
+	);
 });
 
 /**
@@ -97,18 +101,11 @@ appRoutes.post("/calendar/stamp", async (c) => {
 	}
 
 	const body = await c.req.parseBody();
-	const { date, lectureId } = body;
-
-	// Basic validation
-	if (
-		!date ||
-		!lectureId ||
-		typeof date !== "string" ||
-		typeof lectureId !== "string" ||
-		!/^\d{4}-\d{2}-\d{2}$/.test(date)
-	) {
+	const parsed = stampInputSchema.safeParse(body);
+	if (!parsed.success) {
 		return c.text("Invalid input", 400);
 	}
+	const { date, lectureId } = parsed.data;
 
 	try {
 		addStamp(user.id, date, lectureId);
@@ -240,13 +237,19 @@ appRoutes.get("/login/line", (c) => {
  * database, creates a new session, and redirects to the calendar page.
  */
 appRoutes.get("/auth/line/callback", async (c) => {
-	const { code, state } = c.req.query();
+	const queryResult = z
+		.object({ code: z.string(), state: z.string() })
+		.safeParse(c.req.query());
+	if (!queryResult.success) {
+		return c.text("Invalid query", 400);
+	}
+	const { code, state } = queryResult.data;
 	const storedState = getCookie(c, "line_state");
 
 	// Delete the state cookie immediately after use to prevent reuse.
 	setCookie(c, "line_state", "", { expires: new Date(0), path: "/" });
 
-	if (!state || !storedState || state !== storedState) {
+	if (!storedState || state !== storedState) {
 		return c.text(
 			"State mismatch or cookie missing. CSRF attack detected.",
 			400,
@@ -283,7 +286,9 @@ appRoutes.get("/auth/line/callback", async (c) => {
 			const errorBody = await tokenRes.text();
 			throw new Error(`Failed to issue token: ${tokenRes.status} ${errorBody}`);
 		}
-		const tokenData = await tokenRes.json();
+		const tokenData = z
+			.object({ access_token: z.string() })
+			.parse(await tokenRes.json());
 		const accessToken = tokenData.access_token;
 
 		// Get user profile using the access token
@@ -298,7 +303,9 @@ appRoutes.get("/auth/line/callback", async (c) => {
 				`Failed to get profile: ${profileRes.status} ${errorBody}`,
 			);
 		}
-		const profile = await profileRes.json();
+		const profile = z
+			.object({ userId: z.string(), displayName: z.string() })
+			.parse(await profileRes.json());
 
 		// Find or create user in our database
 		const user = findOrCreateUser(profile.userId, profile.displayName);

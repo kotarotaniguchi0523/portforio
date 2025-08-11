@@ -23,6 +23,9 @@ importers:
       drizzle-orm:
         specifier: ^0.44.4
         version: 0.44.4(@types/better-sqlite3@7.6.13)(better-sqlite3@12.2.0)
+      drizzle-zod:
+        specifier: ^0.8.3
+        version: 0.8.3(drizzle-orm@0.44.4(@types/better-sqlite3@7.6.13)(better-sqlite3@12.2.0))(zod@4.0.17)
       exit-hook:
         specifier: ^4.0.0
         version: 4.0.0
@@ -38,6 +41,9 @@ importers:
       tsx:
         specifier: ^4.20.3
         version: 4.20.3
+      zod:
+        specifier: ^4.0.17
+        version: 4.0.17
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.1.4
@@ -893,6 +899,12 @@ packages:
       sqlite3:
         optional: true
 
+  drizzle-zod@0.8.3:
+    resolution: {integrity: sha512-66yVOuvGhKJnTdiqj1/Xaaz9/qzOdRJADpDa68enqS6g3t0kpNkwNYjUuaeXgZfO/UWuIM9HIhSlJ6C5ZraMww==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: ^3.25.0 || ^4.0.0
+
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
     engines: {node: '>= 0.4'}
@@ -1614,6 +1626,9 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
+  zod@4.0.17:
+    resolution: {integrity: sha512-1PHjlYRevNxxdy2JZ8JcNAw7rX8V9P1AKkP+x/xZfxB0K5FYfuV+Ug6P/6NVSR2jHQ+FzDDoDHS04nYUsOIyLQ==}
+
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
@@ -2164,6 +2179,11 @@ snapshots:
     optionalDependencies:
       '@types/better-sqlite3': 7.6.13
       better-sqlite3: 12.2.0
+
+  drizzle-zod@0.8.3(drizzle-orm@0.44.4(@types/better-sqlite3@7.6.13)(better-sqlite3@12.2.0))(zod@4.0.17):
+    dependencies:
+      drizzle-orm: 0.44.4(@types/better-sqlite3@7.6.13)(better-sqlite3@12.2.0)
+      zod: 4.0.17
 
   dunder-proto@1.0.1:
     dependencies:
@@ -2931,3 +2951,5 @@ snapshots:
   wrappy@1.0.2: {}
 
   yaml@2.8.1: {}
+
+  zod@4.0.17: {}
