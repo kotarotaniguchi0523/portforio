@@ -128,6 +128,9 @@ export function addStampForSession(
                 return undefined;
         }
         insertStampSchema.parse({ userId, date, lectureId });
+        if (!userId) {
+                return undefined;
+        }
         dbAddStamp(userId, date, lectureId);
         return getSessionData(sessionId);
 }
