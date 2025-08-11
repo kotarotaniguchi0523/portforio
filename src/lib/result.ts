@@ -1,4 +1,3 @@
-// biome-ignore lint/style/useNamingConvention: AppError is a class name
 export abstract class AppError extends Error {
 	public readonly statusCode: number;
 	public readonly code: string;
