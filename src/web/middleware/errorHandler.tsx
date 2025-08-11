@@ -1,14 +1,14 @@
 import type { ErrorHandler } from "hono";
-import { ZodError } from "zod";
+import type { StatusCode } from "hono/utils/http-status";
 import { AppError, InternalServerError, ValidationError } from "../../lib/result";
 import { ErrorPage } from "../components/ErrorPage";
 import type { Env } from "../../types";
 
 /**
- * Global error handler middleware for the entire application.
+ * アプリケーション全体のエラーを処理するHonoミドルウェア
  */
 export const errorHandler: ErrorHandler<Env> = (err, c) => {
-	// 1. Normalize the error
+	// 1. エラーを正規化する
 	let appError: AppError;
 	if (err instanceof AppError) {
 		appError = err;
@@ -21,31 +21,31 @@ export const errorHandler: ErrorHandler<Env> = (err, c) => {
 		);
 		appError = new ValidationError(messages.join(", "));
 	} else {
-		// Unexpected error
+		// 予期せぬエラー
 		console.error("Unhandled Error:", err);
 		appError = new InternalServerError("An unexpected error occurred.");
 	}
 
-	// 2. Determine response format (HTML or JSON)
+	// 2. レスポンス形式を決定する (HTML or JSON)
 	const acceptHeader = c.req.header("Accept") || "";
 	const isHtmlRequest = acceptHeader.includes("text/html");
 
 	if (isHtmlRequest) {
-		// Render error page for HTML requests
-		// `c.render` is provided by the `renderer` middleware in `Layout.tsx`
+		// HTMLリクエストの場合はエラーページをレンダリング
+		// `c.render` は `Layout.tsx` の `renderer` ミドルウェアによって提供される
 		return c.render(
 			<ErrorPage
 				errorTitle={`${appError.statusCode} ${appError.name}`}
 				errorMessage={appError.message}
 			/>,
 			{
-				title: "Error",
+				title: "エラー",
 			},
 		);
 	}
 
-	// Return JSON response for JSON requests
-	c.status(appError.statusCode);
+	// JSONリクエストの場合はJSONレスポンスを返す
+	c.status(appError.statusCode as StatusCode);
 	return c.json({
 		error: {
 			code: appError.code,

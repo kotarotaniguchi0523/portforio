@@ -2,8 +2,8 @@ import "dotenv/config";
 import { Hono } from "hono";
 import type { Env } from "./types.ts";
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { env } from "std-env";
-import { serveStatic } from "hono/serve-static";
 // biome-ignore lint/nursery/noUnresolvedImports: Node.js builtin
 import process from "node:process";
 import { renderer } from "./web/components/Layout.tsx";

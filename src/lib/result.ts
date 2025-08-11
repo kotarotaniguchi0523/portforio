@@ -28,6 +28,7 @@ export class ValidationError extends AppError {
  * 認証・認可エラー
  */
 export class UnauthorizedError extends AppError {
+	// biome-ignore lint/nursery/noSecrets: 'Unauthorized' is not a secret.
 	constructor(message = "Unauthorized") {
 		super(message, 401, "UNAUTHORIZED");
 	}

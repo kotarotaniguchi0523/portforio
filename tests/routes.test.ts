@@ -1,13 +1,7 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { Hono } from "hono";
 import type { Env } from "../src/types.ts";
-import {
-	fail,
-	ok,
-	DomainError,
-	NotFoundError,
-	UnauthorizedError,
-} from "../src/lib/result.ts";
+import { fail, ok, NotFoundError } from "../src/lib/result.ts";
 import { errorHandler } from "../src/web/middleware/errorHandler.tsx";
 
 vi.mock("../src/domain/session.ts", () => ({

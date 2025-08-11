@@ -9,7 +9,7 @@ import {
 } from "../db/index.ts";
 import { nanoid } from "nanoid";
 import type { SessionData, Stamp } from "./types.ts";
-import { insertStampSchema, sessions } from "../db/schema.ts";
+import { insertStampSchema, type sessions } from "../db/schema.ts";
 import type { InferSelectModel } from "drizzle-orm";
 import {
 	ok,
@@ -148,13 +148,19 @@ export function addStampForSession(
 		// For this refactor, we assume the input is valid if it reaches this point.
 		dbAddStamp(userId, date, lectureId);
 	} catch (error) {
-		// This could catch unique constraint violations from the DB, for example.
 		console.error("Failed to add stamp to database:", error);
-		return fail(
-			new DomainError(
-				"Failed to add stamp, it might already exist for this date.",
-			),
-		);
+		// Check if the error is a SQLite unique constraint violation.
+		// The specific error object structure depends on the database driver (better-sqlite3).
+		if (error && typeof error === "object" && "code" in error && error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+			return fail(
+				new DomainError(
+					"Failed to add stamp, it might already exist for this date.",
+				),
+			);
+		}
+		// For any other type of error, re-throw it to be caught by the global
+		// error handler, which will classify it as a 500 Internal Server Error.
+		throw error;
 	}
 
 	// Pass the existing session object to avoid a second DB query

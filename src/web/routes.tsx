@@ -17,7 +17,6 @@ import {
 } from "../domain/session.ts";
 import { getAvailableLectures } from "../domain/lectures.ts";
 import { getCurrentMonth, getMonthDates } from "../domain/calendar.ts";
-import type { SessionData } from "../domain/types.ts";
 import { stampInputSchema } from "../db/schema.ts";
 import { UnauthorizedError, ValidationError } from "../lib/result.ts";
 
@@ -98,7 +97,7 @@ appRoutes.get("/calendar/stamp-modal/:date", (c) => {
  */
 appRoutes.post(
 	"/calendar/stamp",
-	zValidator("form", stampInputSchema, (result, c) => {
+	zValidator("form", stampInputSchema, (result, _c) => {
 		if (!result.success) {
 			// If validation fails, just throw a generic validation error.
 			// The exact error message from Zod seems to be problematic in the test env.
