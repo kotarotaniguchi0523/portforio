@@ -5,7 +5,7 @@ import { ErrorPage } from "../components/ErrorPage";
 import type { Env } from "../../types";
 
 /**
- * アプリケーション全体のエラーを処理するHonoミドルウェア
+ * Global error handler middleware for the entire application.
  */
 export const errorHandler: ErrorHandler<Env> = (err, c) => {
 	// 1. エラーを正規化する
