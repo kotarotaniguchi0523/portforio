@@ -10,7 +10,7 @@ export const LoginPage = () => {
                                 <p>LINEアカウントでログインしてください。</p>
                                 <a
                                         href="/login/line"
-                                        class="mt-4 inline-block rounded-md bg-[#00B900] px-6 py-3 font-bold text-white transition-colors duration-300 hover:bg-[#00a300]"
+                                        class="mt-4 inline-block rounded-md bg-line px-6 py-3 font-bold text-white transition-colors duration-300 hover:bg-line-dark"
                                 >
                                         LINEでログイン
                                 </a>
