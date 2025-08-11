@@ -65,7 +65,7 @@ appRoutes.get("/calendar/stamp-modal/:date", (c) => {
                                         <div class="mt-5 flex justify-end gap-2">
                                                 <button
                                                         type="submit"
-                                                        class="rounded bg-[#4a90e2] px-3 py-2 text-white"
+                                                        class="rounded bg-brand-blue px-3 py-2 text-white"
                                                 >
                                                         Stamp
                                                 </button>
