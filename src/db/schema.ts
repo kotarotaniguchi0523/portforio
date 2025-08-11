@@ -6,6 +6,8 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 import { sql } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
 // Users table based on LINE profile
 export const users = sqliteTable("users", {
@@ -86,3 +88,14 @@ export const stampsRelations = relations(stamps, ({ one }) => ({
 		references: [lectures.id],
 	}),
 }));
+
+export const insertStampSchema = createInsertSchema(stamps, {
+	userId: z.string().min(1),
+	lectureId: z.string().min(1),
+	date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+export const stampInputSchema = insertStampSchema.pick({
+	date: true,
+	lectureId: true,
+});
