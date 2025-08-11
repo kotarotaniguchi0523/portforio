@@ -31,7 +31,7 @@ export const errorHandler: ErrorHandler<Env> = (err, c) => {
 	const isHtmlRequest = acceptHeader.includes("text/html");
 
 	if (isHtmlRequest) {
-		// HTMLリクエストの場合はエラーページをレンダリング
+		// Render error page for HTML requests
 		// `c.render` is provided by the `renderer` middleware in `Layout.tsx`
 		return c.render(
 			<ErrorPage
