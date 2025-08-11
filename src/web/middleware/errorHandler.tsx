@@ -21,7 +21,7 @@ export const errorHandler: ErrorHandler<Env> = (err, c) => {
 		);
 		appError = new ValidationError(messages.join(", "));
 	} else {
-		// 予期せぬエラー
+		// Unexpected error
 		console.error("Unhandled Error:", err);
 		appError = new InternalServerError("An unexpected error occurred.");
 	}
