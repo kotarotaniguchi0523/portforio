@@ -3,6 +3,9 @@ import { Hono } from "hono";
 import type { Env } from "./types.ts";
 import { serve } from "@hono/node-server";
 import { env } from "std-env";
+import { serveStatic } from "hono/serve-static";
+// biome-ignore lint/nursery/noUnresolvedImports: Node.js builtin
+import process from "node:process";
 import { renderer } from "./web/components/Layout.tsx";
 import { sessionMiddleware } from "./web/middleware/session.ts";
 import { appRoutes } from "./web/routes.tsx";
@@ -13,6 +16,7 @@ const app = new Hono<Env>();
 // Register middleware
 app.use(renderer);
 app.use(sessionMiddleware);
+app.use("/static/*", serveStatic({ root: "./public" }));
 
 // Register routes
 app.route("/", appRoutes);

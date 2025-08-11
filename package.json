@@ -8,12 +8,13 @@
 		"dev": "tsx watch src/main.ts",
 		"start": "tsx src/main.ts",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "tsx src/db/migrate.ts",
-		"test": "vitest run",
-		"test:e2e": "playwright test",
-		"lint": "biome lint .",
-		"format": "biome format --write ."
-	},
+                "db:migrate": "tsx src/db/migrate.ts",
+                "test": "vitest run",
+                "test:e2e": "playwright test",
+                "lint": "biome lint .",
+                "format": "biome format --write .",
+                "build:css": "tailwindcss -i ./src/web/styles/tailwind.css -o ./public/tailwind.css --minify"
+        },
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/kotarotaniguchi0523/portfolio.git"
@@ -42,7 +43,10 @@
 		"@playwright/test": "^1.54.2",
 		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^24.2.1",
+		"autoprefixer": "^10.4.21",
 		"drizzle-kit": "^0.31.4",
+		"postcss": "^8.5.6",
+		"tailwindcss": "^3.4.4",
 		"typescript": "^5.9.2",
 		"vitest": "^3.2.4"
 	},

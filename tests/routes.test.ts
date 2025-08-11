@@ -83,7 +83,7 @@ describe("calendar stamp routes", () => {
 		expect(addStamp).toHaveBeenCalledWith("user1", "2024-09-10", "math");
 
 		// Now, the important check: does the returned grid contain the stamp as an image?
-		expect(text).toContain('class="calendar-cell stamped"');
+                expect(text).toContain('cursor-default');
 		expect(text).toContain('<img src="https://example.com/icons/math.png"');
 		expect(text).toContain('alt="Math"');
 	});

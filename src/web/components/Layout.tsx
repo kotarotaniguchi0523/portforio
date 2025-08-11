@@ -8,14 +8,15 @@ import { jsxRenderer } from "hono/jsx-renderer";
  * @param {string} props.title The title of the HTML page.
  */
 export const renderer = jsxRenderer(({ children, title }) => {
-	return (
-		<html lang="ja">
-			<head>
-				<meta charset="UTF-8" />
-				<title>{title}</title>
-				<script src="https://unpkg.com/htmx.org@1.9.10"></script>
-			</head>
-			<body>{children}</body>
-		</html>
-	);
+        return (
+                <html lang="ja">
+                        <head>
+                                <meta charset="UTF-8" />
+                                <title>{title}</title>
+                                <link href="/static/tailwind.css" rel="stylesheet" />
+                                <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+                        </head>
+                        <body class="m-0 font-sans">{children}</body>
+                </html>
+        );
 });

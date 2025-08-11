@@ -38,40 +38,49 @@ appRoutes.get("/calendar/stamp-modal/:date", (c) => {
 	}
 
 	// Use a <dialog> element for the modal. HTMX will place this in the DOM.
-	return c.html(
-		<dialog class="modal" open>
-			<div class="modal-content">
-				<p>
-					<strong>{date}</strong>
-				</p>
-				<p>Which lecture stamp would you like to add?</p>
-				<form
-					hx-post="/calendar/stamp"
-					hx-target="#calendar-grid"
-					hx-swap="outerHTML"
-				>
-					<input type="hidden" name="date" value={date} />
-					<select name="lectureId" class="lecture-select">
-						{lectures.map((lecture) => (
-							<option value={lecture.id}>{lecture.name}</option>
-						))}
-					</select>
-					<div class="modal-actions">
-						<button type="submit" class="btn-confirm">
-							Stamp
-						</button>
-						<button
-							type="button"
-							class="btn-cancel"
-							onclick="this.closest('dialog').close()"
-						>
-							Cancel
-						</button>
-					</div>
-				</form>
-			</div>
-		</dialog>,
-	);
+        return c.html(
+                <dialog
+                        open
+                        class="max-w-md rounded-lg shadow-lg [&::backdrop]:bg-black/50"
+                >
+                        <div class="p-5 text-center">
+                                <p>
+                                        <strong>{date}</strong>
+                                </p>
+                                <p>Which lecture stamp would you like to add?</p>
+                                <form
+                                        hx-post="/calendar/stamp"
+                                        hx-target="#calendar-grid"
+                                        hx-swap="outerHTML"
+                                >
+                                        <input type="hidden" name="date" value={date} />
+                                        <select
+                                                name="lectureId"
+                                                class="mb-4 w-full rounded border border-gray-300 p-2"
+                                        >
+                                                {lectures.map((lecture) => (
+                                                        <option value={lecture.id}>{lecture.name}</option>
+                                                ))}
+                                        </select>
+                                        <div class="mt-5 flex justify-end gap-2">
+                                                <button
+                                                        type="submit"
+                                                        class="rounded bg-[#4a90e2] px-3 py-2 text-white"
+                                                >
+                                                        Stamp
+                                                </button>
+                                                <button
+                                                        type="button"
+                                                        class="rounded bg-[#ccc] px-3 py-2 text-black"
+                                                        onclick="this.closest('dialog').close()"
+                                                >
+                                                        Cancel
+                                                </button>
+                                        </div>
+                                </form>
+                        </div>
+                </dialog>,
+        );
 });
 
 /**
