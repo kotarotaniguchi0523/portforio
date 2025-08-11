@@ -8,70 +8,74 @@ import type { Stamp } from "../../domain/types.ts";
  * @param {Stamp[]} props.stamps An array of stamp objects for the current user.
  */
 export const CalendarGrid = ({
-	dates,
-	stamps,
+        dates,
+        stamps,
 }: {
-	dates: (Date | null)[];
-	stamps: Stamp[];
+        dates: (Date | null)[];
+        stamps: Stamp[];
 }) => {
-	// Create a map from date string to the entire stamp object for quick lookups.
-	const stampsObj = Object.fromEntries(stamps.map((s) => [s.date, s]));
-	const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
-	const cells = dayNames.map((name) => <div class="day-header">{name}</div>);
+        // Create a map from date string to the entire stamp object for quick lookups.
+        const stampsObj = Object.fromEntries(stamps.map((s) => [s.date, s]));
+        const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
+        const cells = dayNames.map((name) => (
+                <div class="rounded bg-calendar-highlight py-2 text-center font-bold">{name}</div>
+        ));
 
-	dates.forEach((date) => {
-		if (!date) {
-			cells.push(<div class="calendar-cell disabled"></div>);
-		} else {
-			const y = date.getFullYear();
-			const m = (date.getMonth() + 1).toString().padStart(2, "0");
-			const d = date.getDate().toString().padStart(2, "0");
-			const isoDate = `${y}-${m}-${d}`;
-			const dayNumber = date.getDate();
-			const stamp = stampsObj[isoDate]; // This will be the Stamp object or undefined
-			const isStamped = Boolean(stamp);
+        dates.forEach((date) => {
+                if (!date) {
+                        cells.push(
+                                <div class="relative min-h-[80px] cursor-default rounded-md bg-[#f5f5f5] p-2"></div>,
+                        );
+                } else {
+                        const y = date.getFullYear();
+                        const m = (date.getMonth() + 1).toString().padStart(2, "0");
+                        const d = date.getDate().toString().padStart(2, "0");
+                        const isoDate = `${y}-${m}-${d}`;
+                        const dayNumber = date.getDate();
+                        const stamp = stampsObj[isoDate]; // This will be the Stamp object or undefined
+                        const isStamped = Boolean(stamp);
 
-			const cellProps: {
-				class: string;
-				"hx-get"?: string;
-				"hx-target"?: string;
-				"hx-swap"?: string;
-			} = {
-				class: "calendar-cell",
-			};
+                        const cellProps: {
+                                class: string;
+                                "hx-get"?: string;
+                                "hx-target"?: string;
+                                "hx-swap"?: string;
+                        } = {
+                                class: "relative min-h-[80px] rounded-md p-2",
+                        };
 
-			// If the cell represents a valid date and is not already stamped, make it clickable.
-			if (!isStamped) {
-				cellProps.class += " clickable";
-				cellProps["hx-get"] = `/calendar/stamp-modal/${isoDate}`;
-				cellProps["hx-target"] = "#modal-placeholder";
-				cellProps["hx-swap"] = "innerHTML";
-			} else {
-				cellProps.class += " stamped";
-			}
+                        // If the cell represents a valid date and is not already stamped, make it clickable.
+                        if (!isStamped) {
+                                cellProps.class += " cursor-pointer hover:bg-calendar-blue";
+                                cellProps["hx-get"] = `/calendar/stamp-modal/${isoDate}`;
+                                cellProps["hx-target"] = "#modal-placeholder";
+                                cellProps["hx-swap"] = "innerHTML";
+                        } else {
+                                cellProps.class += " cursor-default";
+                        }
 
-			cells.push(
-				<div {...cellProps}>
-					<div class="date-number">{dayNumber}</div>
-					{isStamped && stamp.iconUrl && (
-						<div class="stamp">
-							<img
-								src={stamp.iconUrl}
-								alt={stamp.lectureName ?? "Stamp"}
-								style="width: 24px; height: 24px; object-fit: contain;"
-							/>
-						</div>
-					)}
-				</div>,
-			);
-		}
-	});
+                        cells.push(
+                                <div {...cellProps}>
+                                        <div class="text-sm font-bold">{dayNumber}</div>
+                                        {isStamped && stamp.iconUrl && (
+                                                <div class="absolute bottom-1 right-1">
+                                                        <img
+                                                                src={stamp.iconUrl}
+                                                                alt={stamp.lectureName ?? "Stamp"}
+                                                                class="h-6 w-6 object-contain"
+                                                        />
+                                                </div>
+                                        )}
+                                </div>,
+                        );
+                }
+        });
 
-	return (
-		<div id="calendar-grid" class="calendar-grid">
-			{...cells}
-		</div>
-	);
+        return (
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1">
+                        {...cells}
+                </div>
+        );
 };
 
 /**
@@ -81,63 +85,42 @@ export const CalendarGrid = ({
  * @param {Stamp[]} props.stamps An array of stamp objects for the current user.
  */
 export const CalendarPage = ({
-	username,
-	stamps,
+        username,
+        stamps,
 }: {
-	username: string;
-	stamps: Stamp[];
+        username: string;
+        stamps: Stamp[];
 }) => {
-	const now = new Date();
-	const year = now.getFullYear();
-	const month = now.getMonth(); // 0-indexed
-	const dates = getMonthDates(year, month);
-	const monthName = `${year}年${month + 1}月`;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-indexed
+        const dates = getMonthDates(year, month);
+        const monthName = `${year}年${month + 1}月`;
 
-	return (
-		<>
-			<style>{`
-        body { font-family: sans-serif; background: #f7f9fb; margin: 0; padding: 0; }
-        header { background: #4a90e2; color: white; padding: 1rem 2rem; text-align: center; position: relative; }
-        .logout-btn { position: absolute; top: 1rem; right: 1rem; background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-        .logout-btn:hover { background: #c0392b; }
-        #calendar-container { max-width: 800px; margin: 30px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .day-header { font-weight: bold; text-align: center; padding: 8px 0; background: #eef3fa; border-radius: 4px; }
-        .calendar-cell { min-height: 80px; position: relative; padding: 8px; border-radius: 6px; }
-        .calendar-cell.disabled { background: #f5f5f5; cursor: default; }
-        .calendar-cell.stamped { cursor: default; }
-        .calendar-cell.clickable { cursor: pointer; }
-        .calendar-cell.clickable:hover { background: #eef3fa; }
-        .date-number { font-size: 14px; font-weight: bold; }
-        .stamp { position: absolute; bottom: 5px; right: 5px; font-size: 24px; }
-        .lecture-type-text { font-size: 10px; text-align: right; }
-
-        /* Modal styles */
-        #modal-placeholder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; }
-        .modal { border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 0; max-width: 400px; }
-        .modal::backdrop { background: rgba(0, 0, 0, 0.5); }
-        .modal-content { padding: 20px; text-align: center; }
-        .modal-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
-        .lecture-select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 1rem; }
-        .btn-confirm { background: #4a90e2; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-        .btn-cancel { background: #ccc; color: black; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-      `}</style>
-			<header>
-				<form action="/logout" method="get">
-					<button type="submit" class="logout-btn">
-						ログアウト
-					</button>
-				</form>
-				<h1>{monthName}</h1>
-				<p>{username} さんのスタンプカレンダー</p>
-			</header>
-			<div id="calendar-container">
-				<CalendarGrid dates={dates} stamps={stamps} />
-			</div>
-			<div id="modal-placeholder"></div>
-			<script>
-				{`setTimeout(() => { window.location.href = '/logout'; }, 20000);`}
-			</script>
-		</>
-	);
+        return (
+                <div class="min-h-screen bg-[#f7f9fb]">
+                        <header class="relative bg-[#4a90e2] px-8 py-4 text-center text-white">
+                                <form action="/logout" method="get">
+                                        <button
+                                                type="submit"
+                                                class="absolute right-4 top-4 rounded-md bg-[#e74c3c] px-3 py-2 text-white hover:bg-[#c0392b]"
+                                        >
+                                                ログアウト
+                                        </button>
+                                </form>
+                                <h1>{monthName}</h1>
+                                <p>{username} さんのスタンプカレンダー</p>
+                        </header>
+                        <div
+                                id="calendar-container"
+                                class="mx-auto mt-8 max-w-4xl rounded-xl bg-white p-5 shadow-md"
+                        >
+                                <CalendarGrid dates={dates} stamps={stamps} />
+                        </div>
+                        <div id="modal-placeholder" class="fixed inset-0 z-[100]"></div>
+                        <script>
+                                {`setTimeout(() => { window.location.href = '/logout'; }, 20000);`}
+                        </script>
+                </div>
+        );
 };
