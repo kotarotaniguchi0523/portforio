@@ -3,29 +3,41 @@ import { Hono } from "hono";
 import type { Env } from "../src/types.ts";
 
 vi.mock("../src/domain/session.ts", () => ({
-	addStamp: vi.fn(),
-	getSessionData: vi.fn().mockResolvedValue({ stamps: [] }),
-	findOrCreateUser: vi.fn(),
-	createSession: vi.fn(),
-	deleteSession: vi.fn(),
-	getUserIdFromSession: vi.fn(),
+        addStampForSession: vi.fn(),
+        findOrCreateUser: vi.fn(),
+        createSession: vi.fn(),
+        deleteSession: vi.fn(),
+        getUserIdFromSession: vi.fn(),
 }));
 
 vi.mock("../src/domain/lectures.ts", () => ({
-	getAvailableLectures: vi.fn(() => [
-		{ id: "math", name: "Math" },
-		{ id: "history", name: "History" },
-	]),
+        getAvailableLectures: vi.fn(() => [
+                { id: "math", name: "Math" },
+                { id: "history", name: "History" },
+        ]),
 }));
 
+vi.mock("../src/domain/calendar.ts", async () => {
+        const actual = await vi.importActual<
+                typeof import("../src/domain/calendar.ts")
+        >("../src/domain/calendar.ts");
+        return {
+                ...actual,
+                getCurrentMonth: vi.fn(() => ({
+                        year: 2024,
+                        month: 8, // September
+                        dates: actual.getMonthDates(2024, 8),
+                })),
+        };
+});
+
 import { appRoutes } from "../src/web/routes.tsx";
-import { addStamp, getSessionData } from "../src/domain/session.ts";
+import { addStampForSession } from "../src/domain/session.ts";
 
 describe("calendar stamp routes", () => {
 	let app: Hono<Env>;
 	beforeEach(() => {
-		(addStamp as Mock).mockClear();
-		(getSessionData as Mock).mockClear();
+                (addStampForSession as Mock).mockClear();
 		app = new Hono<Env>();
 		app.use("*", async (c, next) => {
 			c.set("user", { id: "user1", username: "test" });
@@ -56,16 +68,16 @@ describe("calendar stamp routes", () => {
 	});
 
 	it("adds stamp and returns updated grid", async () => {
-		// Arrange: Configure the mock to return a new stamp *after* `addStamp` is called.
+         // Arrange: Configure the mock to return a new stamp after stamping.
 		const newStamp = {
 			date: "2024-09-10",
 			lectureName: "Math",
 			iconUrl: "https://example.com/icons/math.png",
 		};
-		(getSessionData as Mock).mockReturnValue({
-			user: { id: "user1", username: "test" },
-			stamps: [newStamp],
-		});
+                  (addStampForSession as Mock).mockReturnValue({
+                          user: { id: "user1", username: "test" },
+                          stamps: [newStamp],
+                  });
 
 		// Act
 		const res = await app.request("/calendar/stamp", {
@@ -80,7 +92,11 @@ describe("calendar stamp routes", () => {
 		// Assert
 		expect(res.status).toBe(200);
 		const text = await res.text();
-		expect(addStamp).toHaveBeenCalledWith("user1", "2024-09-10", "math");
+                  expect(addStampForSession).toHaveBeenCalledWith(
+                          "sess1",
+                          "2024-09-10",
+                          "math",
+                  );
 
 		// Now, the important check: does the returned grid contain the stamp as an image?
                 expect(text).toContain('cursor-default');
@@ -88,11 +104,11 @@ describe("calendar stamp routes", () => {
 		expect(text).toContain('alt="Math"');
 	});
 
-	it("handles errors during stamping", async () => {
-		// Arrange: Make the addStamp function throw an error
-		(addStamp as Mock).mockImplementation(() => {
-			throw new Error("DB error");
-		});
+         it("handles errors during stamping", async () => {
+                 // Arrange: Make the stamping function throw an error
+                   (addStampForSession as Mock).mockImplementation(() => {
+                          throw new Error("DB error");
+                  });
 
 		// Act
 		const res = await app.request("/calendar/stamp", {

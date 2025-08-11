@@ -23,3 +23,24 @@ export function getMonthDates(year: number, month: number): (Date | null)[] {
 
         return [...leadingNulls, ...days, ...trailingNulls];
 }
+
+/**
+ * Convenience helper that returns the year, month and calendar grid for the
+ * current month. This consolidates the repeated logic of creating a `Date`
+ * object, extracting the year/month and generating the grid with
+ * {@link getMonthDates}.
+ */
+export function getCurrentMonth(): {
+        year: number;
+        month: number;
+        dates: (Date | null)[];
+} {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        return {
+                year,
+                month,
+                dates: getMonthDates(year, month),
+        };
+}

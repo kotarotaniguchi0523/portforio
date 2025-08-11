@@ -99,12 +99,37 @@ export function findOrCreateUser(
  * @param {string} lectureId - The ID of the lecture.
  */
 export function addStamp(
-	userId: string,
-	date: string,
-	lectureId: string,
+        userId: string,
+        date: string,
+        lectureId: string,
 ): void {
-	insertStampSchema.parse({ userId, date, lectureId });
-	dbAddStamp(userId, date, lectureId);
+        insertStampSchema.parse({ userId, date, lectureId });
+        dbAddStamp(userId, date, lectureId);
+}
+
+/**
+ * Adds a stamp based on a session ID and returns the updated session data.
+ * This aggregates the logic of resolving the user from the session, inserting
+ * the stamp and reloading session information so that web handlers remain
+ * lean.
+ *
+ * @param {string} sessionId - The current session ID.
+ * @param {string} date - ISO date string (YYYY-MM-DD).
+ * @param {string} lectureId - The lecture to associate with the stamp.
+ * @returns {SessionData | undefined} Updated session data or undefined if the session is invalid.
+ */
+export function addStampForSession(
+        sessionId: string,
+        date: string,
+        lectureId: string,
+): SessionData | undefined {
+        const userId = getUserIdFromSession(sessionId);
+        if (!userId) {
+                return undefined;
+        }
+        insertStampSchema.parse({ userId, date, lectureId });
+        dbAddStamp(userId, date, lectureId);
+        return getSessionData(sessionId);
 }
 
 /**

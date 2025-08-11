@@ -1,4 +1,3 @@
-import { getMonthDates } from "../../domain/calendar.ts";
 import type { Stamp } from "../../domain/types.ts";
 
 /**
@@ -83,18 +82,23 @@ export const CalendarGrid = ({
  * @param {object} props The component props.
  * @param {string} props.username The display name of the logged-in user.
  * @param {Stamp[]} props.stamps An array of stamp objects for the current user.
+ * @param {(Date|null)[]} props.dates Calendar grid for the current month.
+ * @param {number} props.year The calendar year being displayed.
+ * @param {number} props.month The zero-indexed month being displayed.
  */
 export const CalendarPage = ({
         username,
         stamps,
+        dates,
+        year,
+        month,
 }: {
         username: string;
         stamps: Stamp[];
+        dates: (Date | null)[];
+        year: number;
+        month: number;
 }) => {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth(); // 0-indexed
-        const dates = getMonthDates(year, month);
         const monthName = `${year}年${month + 1}月`;
 
         return (
