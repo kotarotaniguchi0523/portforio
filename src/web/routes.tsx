@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import type { Env } from "../types.ts";
-import { setCookie, getCookie } from "hono/cookie";
+import { getCookie } from "hono/cookie";
 import { env } from "std-env";
-import { nanoid } from "nanoid";
+import { setSecureCookie } from "../utils/cookie.ts";
+import { generateId } from "../utils/id.ts";
 import { LoginPage } from "./components/LoginPage.tsx";
 import { CalendarPage, CalendarGrid } from "./components/CalendarPage.tsx";
 import { ErrorPage } from "./components/ErrorPage.tsx";
@@ -180,10 +181,10 @@ appRoutes.get("/calendar", (c) => {
  */
 appRoutes.get("/logout", (c) => {
 	const sessionId = getCookie(c, "sessionId");
-	if (sessionId) {
-		deleteSession(sessionId);
-		setCookie(c, "sessionId", "", { expires: new Date(0), path: "/" });
-	}
+        if (sessionId) {
+                deleteSession(sessionId);
+                setSecureCookie(c, "sessionId", "", { expires: new Date(0) });
+        }
 	return c.redirect("/");
 });
 
@@ -201,13 +202,8 @@ appRoutes.get("/login/line", (c) => {
 		// biome-ignore lint/nursery/noSecrets: 'Configuration error' is not a secret.
 		return c.text("Configuration error", 500);
 	}
-	const state = nanoid(32);
-	setCookie(c, "line_state", state, {
-		path: "/",
-		httpOnly: true,
-		secure: c.req.url.startsWith("https://"),
-		sameSite: "Lax",
-	});
+        const state = generateId(32);
+        setSecureCookie(c, "line_state", state);
 
 	const params = new URLSearchParams({
 		response_type: "code",
@@ -240,7 +236,7 @@ appRoutes.get("/auth/line/callback", async (c) => {
 	const storedState = getCookie(c, "line_state");
 
 	// Delete the state cookie immediately after use to prevent reuse.
-	setCookie(c, "line_state", "", { expires: new Date(0), path: "/" });
+        setSecureCookie(c, "line_state", "", { expires: new Date(0) });
 
 	if (!storedState || state !== storedState) {
 		return c.text(
@@ -304,13 +300,8 @@ appRoutes.get("/auth/line/callback", async (c) => {
 		const user = findOrCreateUser(profile.userId, profile.displayName);
 
 		// Create a new session for the user
-		const sessionId = createSession(user.id);
-		setCookie(c, "sessionId", sessionId, {
-			path: "/",
-			httpOnly: true,
-			secure: c.req.url.startsWith("https://"),
-			sameSite: "Lax",
-		});
+                const sessionId = createSession(user.id);
+                setSecureCookie(c, "sessionId", sessionId);
 
 		// Redirect to the calendar page
 		return c.redirect("/calendar");
