@@ -7,7 +7,7 @@ import {
 	getDbSession,
 	deleteDbSession,
 } from "../db/index.ts";
-import { nanoid } from "nanoid";
+import { generateId } from "../utils/id.ts";
 import type { SessionData, Stamp } from "./types.ts";
 import { insertStampSchema, type sessions } from "../db/schema.ts";
 import type { InferSelectModel } from "drizzle-orm";
@@ -29,7 +29,7 @@ const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
  * @returns {string} The new session ID.
  */
 export function createSession(userId: string): string {
-	const sessionId = nanoid();
+        const sessionId = generateId();
 	const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 	createDbSession(sessionId, userId, expiresAt);
 	return sessionId;
@@ -41,19 +41,13 @@ export function createSession(userId: string): string {
  * @returns {{user: object, stamps: Array<object>}|undefined}
  */
 export function getSessionData(
-	sessionId: string,
-	existingSession?: Session,
+        sessionId: string,
+        existingSession?: Session,
 ): SessionData | undefined {
-	const session = existingSession ?? getDbSession(sessionId);
-	if (!session) {
-		return undefined;
-	}
-
-	// Check for expiration
-	if (new Date() > session.expiresAt) {
-		deleteDbSession(sessionId);
-		return undefined;
-	}
+        const session = existingSession ?? getValidSession(sessionId);
+        if (!session) {
+                return undefined;
+        }
 
 	const user = findUserById(session.userId);
 	if (!user) {
@@ -179,10 +173,13 @@ export function addStampForSession(
  * @returns {Session | undefined} The session object or undefined.
  */
 export function getValidSession(sessionId: string): Session | undefined {
-	const session = getDbSession(sessionId);
-	// Also check expiration here for safety
-	if (!session || new Date() > session.expiresAt) {
-		return undefined;
-	}
-	return session;
+        const session = getDbSession(sessionId);
+        if (!session) {
+                return undefined;
+        }
+        if (new Date() > session.expiresAt) {
+                deleteDbSession(sessionId);
+                return undefined;
+        }
+        return session;
 }
